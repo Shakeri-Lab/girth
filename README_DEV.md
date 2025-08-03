@@ -25,7 +25,7 @@ Detailed cProfile outputs are in `profiling_results/`.
 
 ## 3  Optimisation Backlog
 
-- [ ] Refactor hot loops (reduce NetworkX look-ups, cache adjacency)
+- [~] Refactor hot loops (reduce NetworkX look-ups, cache adjacency) – first pass completed (edge iteration optimized)
 - [ ] Switch to faster heap/heapdict
 - [ ] Optional Cython/C++ extension
 

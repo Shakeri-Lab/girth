@@ -390,23 +390,21 @@ def sota_shortest_cycle(G, use_fib_heap=False, use_lca=True, return_stats=False)
         lca_tree = LCATree(preds, depth, nodes)
         stats['lca_trees_built'] += 1
         
-        # Check all edges for potential cycles
-        for u in G.nodes():
-            for v in G.neighbors(u):
-                # For stats
-                stats['edges_checked'] += 1
-                
-                if (distances.get(u, float('inf')) == float('inf') or 
-                    distances.get(v, float('inf')) == float('inf') or 
-                    u == v):
-                    continue
-                
-                # Calculate cycle length using LCA
-                p = lca_tree.lca(u, v)
-                if p and p != u and p != v:
-                    cycle_length = distances[u] + distances[v] + G[u][v]['weight'] - 2 * distances[p]
-                    if cycle_length < gamma:
-                        gamma = cycle_length
+        # Check all edges for potential cycles (iterate each undirected edge once)
+        INF = float('inf')
+        for u, v, attr in G.edges(data=True):
+            # For stats
+            stats['edges_checked'] += 1
+            
+            if distances.get(u, INF) == INF or distances.get(v, INF) == INF:
+                continue
+            
+            # Calculate cycle length using LCA
+            p = lca_tree.lca(u, v)
+            if p and p != u and p != v:
+                cycle_length = distances[u] + distances[v] + attr.get('weight', 1.0) - 2 * distances[p]
+                if cycle_length < gamma:
+                    gamma = cycle_length
         
         # Collect LCA stats before pruning
         if stats.get('lca_stats') is None:
@@ -416,7 +414,8 @@ def sota_shortest_cycle(G, use_fib_heap=False, use_lca=True, return_stats=False)
         # Aggressive pruning: Remove nodes that can't improve the cycle
         pruned_in_iteration = 0
         for v in G.nodes():
-            if v in active_nodes and distances.get(v, float('inf')) + 2 * min_edge_weight >= gamma:
+            dist_v = distances.get(v, float('inf'))
+            if v in active_nodes and dist_v != float('inf') and dist_v + 2 * min_edge_weight >= gamma:
                 active_nodes.discard(v)
                 pruned_in_iteration += 1
         
