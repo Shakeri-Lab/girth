@@ -28,7 +28,8 @@ Detailed cProfile outputs are in `profiling_results/`.
 - [x] Refactor hot loops (edge iteration optimised — confirmed gains)
 - [ ] Evaluate heap implementations → heapdict shows no benefit on 1k-node graphs (see docs/benchmark_large_graphs.md)
 - [ ] Integrate compiled Fibonacci heap or move Dijkstra relaxations to Cython
-- [ ] Switch to faster heap/heapdict
+- [x] Switch to faster heap/heapdict (experiment showed no gain)
+- [ ] Scaffold HybridMWC framework (in progress)
 - [ ] Optional Cython/C++ extension
 
 ---
