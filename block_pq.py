@@ -35,12 +35,41 @@ class BlockBasedPQ:
     def empty(self) -> bool:
         return self.size == 0
 
+    def __len__(self):
+        return self.size
+
     def pop(self):
         if self.empty():
             raise IndexError("pop from empty BlockBasedPQ")
         # advance min_bucket until non-empty
         while self.min_bucket not in self.buckets or not self.buckets[self.min_bucket]:
-            self.min_bucket += 1  # type: ignore
+            self.min_bucket += 1  # type: ignore[arg-type]
         key, item = heapq.heappop(self.buckets[self.min_bucket])
         self.size -= 1
         return key, item
+
+    # --------------------------------------------------------------
+    def pull_batch(self, limit: int):
+        """Pop up to *limit* items sharing the smallest bucket.
+
+        Returns (max_key_in_batch, set_of_items).  Useful for BMSSP recursion.
+        """
+        if limit <= 0:
+            raise ValueError("limit must be positive")
+        if self.empty():
+            raise IndexError("pull from empty BlockBasedPQ")
+        # ensure min_bucket positioned correctly
+        while self.min_bucket not in self.buckets or not self.buckets[self.min_bucket]:
+            self.min_bucket += 1  # type: ignore[arg-type]
+        batch_items = set()
+        max_key = 0.0
+        bucket_heap = self.buckets[self.min_bucket]
+        while bucket_heap and len(batch_items) < limit:
+            key, item = heapq.heappop(bucket_heap)
+            max_key = max(max_key, key)
+            batch_items.add(item)
+            self.size -= 1
+        if not bucket_heap:
+            # bucket depleted
+            del self.buckets[self.min_bucket]
+        return max_key, batch_items
