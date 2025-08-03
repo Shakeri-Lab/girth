@@ -101,7 +101,7 @@ class HybridMWC:
         edges=set(tuple(sorted(e)) for e in path_u+path_v+[(u,v)])
         return edges
 
-    def minimum_weight_cycle(self, *, bound: float | None = None, return_edges: bool = False):
+    def minimum_weight_cycle(self, *, bound: float | None = None, sources: set[int] | None = None, return_edges: bool = False):
         if len(self.G) <= 1 or self.G.number_of_edges() == 0:
             return None
 
@@ -109,7 +109,8 @@ class HybridMWC:
         min_edge_w = min(w for *_, w in self.G.edges(data="weight", default=1.0))
 
         best_edges = None
-        for s in nodes:
+        iter_nodes = sources if sources else nodes
+        for s in iter_nodes:
             limit = bound/2 if bound is not None else self.gamma/2
             dist, preds, depth = self.sssp.run(self.G, s, limit)
             lca_struct = self.lca_backend.build(preds, depth, nodes)
@@ -131,7 +132,7 @@ class HybridMWC:
         return (best_edges, self.gamma) if return_edges else self.gamma
 
 
-def hybrid_mwc_length(G: nx.Graph, *, use_bmssp_lite: bool = False, use_euler_lca: bool = False, bound: float | None = None, return_edges: bool=False):
+def hybrid_mwc_length(G: nx.Graph, *, use_bmssp_lite: bool = False, use_euler_lca: bool = False, bound: float | None = None, source_seeds: set[int] | None = None, return_edges: bool=False):
     sssp: SSSPStrategy | None = None
     if use_bmssp_lite:
         from bmssp_lite import BMSSPLiteStrategy  # local import
@@ -139,4 +140,4 @@ def hybrid_mwc_length(G: nx.Graph, *, use_bmssp_lite: bool = False, use_euler_lc
     elif not use_bmssp_lite and BMSSPFullStrategy is not None:
         sssp = BMSSPFullStrategy()
     lca_strat = EulerLCAStrategy() if use_euler_lca else BinaryLCAStrategy()
-    return HybridMWC(G, sssp=sssp, lca=lca_strat).minimum_weight_cycle(bound=bound, return_edges=return_edges)
+    return HybridMWC(G, sssp=sssp, lca=lca_strat).minimum_weight_cycle(bound=bound, sources=source_seeds, return_edges=return_edges)
