@@ -1,105 +1,121 @@
 """Hybrid Minimum Weight Cycle (MWC) framework
 ------------------------------------------------
-Pure-Python scaffolding that will let us swap different
-single-source shortest-path (SSSP) strategies while re-using the
-cycle-checking logic already present in `shortest_cycle.sota_shortest_cycle`.
-
-Initially it just delegates to the existing Dijkstra-based code so we can
-verify correctness without changing behaviour.  Future commits will add
-BMSSP variants.
+This module integrates pluggable SSSP strategies (Dijkstra, BMSSP-lite, …)
+with pluggable LCA back-ends (binary lifting, Euler tour).  It provides a
+common driver to experiment with algorithmic variants.
 """
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Dict, Tuple, Any, Iterable
+from typing import Dict, Tuple, Any, Iterable, Set
 
 import networkx as nx
 
-# Re-use helper from the existing implementation
-from shortest_cycle import dijkstra_base, LCATree
-
+# ------------------------------------------------------------------
+# SSSP strategy interface + baseline implementations
+# ------------------------------------------------------------------
 
 class SSSPStrategy(ABC):
-    """Strategy interface for bounded SSSP computations."""
-
     @abstractmethod
-    def run(self, G: nx.Graph, source: int, bound: float) -> Tuple[Dict[int, float], Dict[int, int], Dict[int, int]]:
-        """Return (distances, predecessors, depth) limited to *bound*.
+    def run(self, G: nx.Graph, source: int | Set[int], bound: float):
+        """Return (distances, predecessors, depth) dictionaries."""
 
-        *distances[v]* may be **> bound** (or `inf`) but must be defined for
-        *all* vertices so that downstream LCA construction can proceed.
-        """
 
+from shortest_cycle import dijkstra_base  # re-use proven code
 
 class DijkstraStrategy(SSSPStrategy):
-    """Current baseline using binary-heap Dijkstra from `shortest_cycle`."""
-
     def __init__(self, use_heapdict: bool = False):
         self.use_heapdict = use_heapdict
 
-    def run(self, G: nx.Graph, source: int, bound: float):  # type: ignore[override]
+    def run(self, G, source, bound):  # type: ignore[override]
         distances, preds, depth, _ = dijkstra_base(
-            G, source, bound * 2,  # dijkstra_base expects *gamma*, we have bound = gamma/2
+            G, next(iter(source)) if isinstance(source, set) else source,
+            bound * 2,
             use_heapdict=self.use_heapdict,
         )
         return distances, preds, depth
 
+# Lazy import to avoid circular deps when bmssp_lite imports this file
+try:
+    from bmssp_lite import BMSSPLiteStrategy  # noqa: F401
+from bmssp_full import BMSSPFullStrategy  # noqa: F401
+except ModuleNotFoundError:
+    BMSSPLiteStrategy = None  # type: ignore
+
+# ------------------------------------------------------------------
+# LCA back-end selection
+# ------------------------------------------------------------------
+from shortest_cycle import LCATree  # binary lifting
+try:
+    from lca_euler import EulerLCA
+except ModuleNotFoundError:
+    EulerLCA = None  # type: ignore
+
+class LCAStrategy(ABC):
+    @abstractmethod
+    def build(self, parents: Dict[int, int], depth: Dict[int, int], nodes: list[int]):
+        pass
+
+class BinaryLCAStrategy(LCAStrategy):
+    def build(self, parents, depth, nodes):  # type: ignore[override]
+        return LCATree(parents, depth, nodes)
+
+class EulerLCAStrategy(LCAStrategy):
+    def build(self, parents, depth, nodes):  # type: ignore[override]
+        if EulerLCA is None:
+            raise ImportError("lca_euler module not found")
+        return EulerLCA(parents, depth, nodes)
+
+# ------------------------------------------------------------------
+# Hybrid driver
+# ------------------------------------------------------------------
 
 class HybridMWC:
-    """Hybrid MWC algorithm (skeleton).
-
-    For now it simply iterates over all vertices and executes the chosen SSSP
-    strategy using an ever-shrinking γ.  Cycle detection still relies on the
-    existing LCA + edge-scan logic copied from `shortest_cycle` to keep the
-    diff minimal.  Once BMSSP variants are implemented the SSSP cost will drop.
-    """
-
-    def __init__(self, G: nx.Graph, sssp: SSSPStrategy | None = None):
+    def __init__(
+        self,
+        G: nx.Graph,
+        *,
+        sssp: SSSPStrategy | None = None,
+        lca: LCAStrategy | None = None,
+    ):
         if G.is_directed():
             raise ValueError("Graph must be undirected")
         self.G = G
         self.sssp = sssp or DijkstraStrategy()
+        self.lca_backend = lca or BinaryLCAStrategy()
         self.gamma = float("inf")
 
-    # ---------------------------------------------------------------------
-    # Public API
-    # ---------------------------------------------------------------------
     def minimum_weight_cycle(self) -> float | None:
-        """Compute the MWC length (skeleton version).
-
-        Returns *None* if the graph is acyclic.
-        """
         if len(self.G) <= 1 or self.G.number_of_edges() == 0:
             return None
 
         nodes = list(self.G.nodes())
-        min_edge_weight = min(w for _, _, w in self.G.edges(data="weight", default=1.0))
+        min_edge_w = min(w for *_, w in self.G.edges(data="weight", default=1.0))
 
         for s in nodes:
-            distances, preds, depth = self.sssp.run(self.G, s, self.gamma / 2)
-            lca = LCATree(preds, depth, nodes)
+            dist, preds, depth = self.sssp.run(self.G, s, self.gamma / 2)
+            lca_struct = self.lca_backend.build(preds, depth, nodes)
 
-            # Edge scan (undirected => iterate each edge once)
             for u, v, attr in self.G.edges(data=True):
-                if distances[u] == float("inf") or distances[v] == float("inf"):
+                if dist[u] == float("inf") or dist[v] == float("inf"):
                     continue
-                p = lca.lca(u, v)
+                p = lca_struct.lca(u, v)
                 if p and p != u and p != v:
-                    cycle_len = distances[u] + distances[v] + attr.get("weight", 1.0) - 2 * distances[p]
+                    cycle_len = dist[u] + dist[v] + attr.get("weight", 1.0) - 2 * dist[p]
                     if cycle_len < self.gamma:
                         self.gamma = cycle_len
-
-            # Early exit heuristic: if the current best γ is already the
-            # minimum possible (4 * min edge weight) we can break.
-            if self.gamma <= 4 * min_edge_weight:
+            if self.gamma <= 4 * min_edge_w:
                 break
-
         return None if self.gamma == float("inf") else self.gamma
 
 
-# -------------------------------------------------------------------------
-# Convenience helper
-# -------------------------------------------------------------------------
-def hybrid_mwc_length(G: nx.Graph) -> float | None:
-    """Functional wrapper mirroring old API style."""
-    return HybridMWC(G).minimum_weight_cycle()
+def hybrid_mwc_length(G: nx.Graph, *, use_bmssp_lite: bool = False, use_euler_lca: bool = False):
+    sssp: SSSPStrategy | None = None
+    if use_bmssp_lite:
+        from bmssp_lite import BMSSPLiteStrategy  # local import
+        sssp = BMSSPLiteStrategy()
+    elif use_bmssp_lite is False and 'BMSSPFullStrategy' in globals():
+        # default to full BMSSP when available and flag not set
+        pass
+    lca_strat = EulerLCAStrategy() if use_euler_lca else BinaryLCAStrategy()
+    return HybridMWC(G, sssp=sssp, lca=lca_strat).minimum_weight_cycle()
