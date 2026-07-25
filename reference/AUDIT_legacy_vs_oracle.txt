@@ -1,0 +1,133 @@
+random graphs tested: 400  (n in [4,9], gnp, int/unit/float weights)
+oracle cross-check disagreements (edge-removal vs enumeration): 0
+
+mismatches vs brute-force oracle:
+  sota             wrong=  22/400  (  5.5%)   exceptions=0
+  sota_nozero      wrong=  12/400  (  3.0%)   exceptions=0
+  sota_lcafix      wrong=   8/400  (  2.0%)   exceptions=0
+  sota_noprune     wrong=   9/400  (  2.2%)   exceptions=0
+  sota_lcafix_noprune wrong=   0/400  (  0.0%)   exceptions=0
+  hybrid_bmssp_full wrong= 366/400  ( 91.5%)   exceptions=0
+  hybrid_bmssp_lite wrong=  13/400  (  3.2%)   exceptions=0
+  hybrid_dijkstra  wrong=  12/400  (  3.0%)   exceptions=0
+  hybrid_euler_full wrong= 278/400  ( 69.5%)   exceptions=104
+  hybrid_euler_lite wrong=  51/400  ( 12.8%)   exceptions=205
+
+return_edges=True: is the returned edge set a genuine simple cycle of G
+with weight equal to the reported length?  (this set becomes a QP row in
+loop_modulus core.py, unvalidated)
+  BMSSP-full : invalid=94/94  (100.0%)   infinite-loop hangs (>5s) = 1
+  BMSSP-lite : invalid=0/83  (  0.0%)   infinite-loop hangs (>5s) = 0
+  --- invalid-cycle example, BMSSP-full ---
+      G edges: [(0, 6, 3.0), (2, 3, 4.0), (2, 5, 4.0), (2, 6, 3.0), (3, 4, 2.0), (3, 5, 5.0), (4, 6, 7.0), (5, 6, 9.0)]
+      returned edge set: [(2, 5), (2, 6), (3, 4), (3, 5), (4, 6)]   reported length=7.0  oracle=13.0
+
+--- minimal failing example for hybrid_bmssp_full (2 edges) ---
+    edges (u,v,w): [(0, 1, 1.0), (0, 2, 1.0)]
+    oracle = None   got = -inf
+--- minimal failing example for hybrid_bmssp_lite (4 edges) ---
+    edges (u,v,w): [(0, 2, 1.581), (0, 3, 3.036), (1, 2, 4.127), (2, 3, 4.959)]
+    oracle = 9.575999999999999   got = None
+--- minimal failing example for hybrid_dijkstra (4 edges) ---
+    edges (u,v,w): [(0, 2, 1.581), (0, 3, 3.036), (1, 2, 4.127), (2, 3, 4.959)]
+    oracle = 9.575999999999999   got = None
+--- minimal failing example for hybrid_euler_full (2 edges) ---
+    edges (u,v,w): [(0, 1, 1.0), (0, 2, 1.0)]
+    oracle = None   got = 2.0
+--- minimal failing example for hybrid_euler_full:exc (4 edges) ---
+    edges (u,v,w): [(0, 3, 4.925), (1, 3, 3.005), (2, 4, 4.291), (2, 5, 2.638)]
+    oracle = None   got = KeyError: 2
+--- minimal failing example for hybrid_euler_lite (2 edges) ---
+    edges (u,v,w): [(0, 1, 1.0), (0, 2, 1.0)]
+    oracle = None   got = 4.0
+--- minimal failing example for hybrid_euler_lite:exc (23 edges) ---
+    edges (u,v,w): [(0, 1, 3.0), (0, 2, 1.0), (0, 3, 9.0), (0, 4, 5.0), (0, 5, 8.0), (0, 6, 5.0), (0, 7, 3.0), (1, 2, 3.0), (1, 3, 1.0), (1, 4, 5.0), (1, 8, 1.0), (2, 5, 9.0), (2, 6, 4.0), (3, 4, 8.0), (3, 5, 4.0), (3, 8, 7.0), (4, 6, 2.0), (4, 7, 5.0), (4, 8, 5.0), (5, 6, 7.0), (5, 7, 6.0), (5, 8, 1.0), (6, 7, 7.0)]
+    oracle = 7.0   got = KeyError: 1
+--- minimal failing example for sota (4 edges) ---
+    edges (u,v,w): [(0, 2, 1.581), (0, 3, 3.036), (1, 2, 4.127), (2, 3, 4.959)]
+    oracle = 9.575999999999999   got = None
+--- minimal failing example for sota_lcafix (8 edges) ---
+    edges (u,v,w): [(0, 1, 2.979), (0, 3, 2.301), (0, 4, 3.608), (2, 3, 3.285), (2, 5, 4.72), (3, 4, 2.121), (3, 5, 2.41), (4, 5, 2.513)]
+    oracle = 7.0440000000000005   got = 8.030000000000001
+--- minimal failing example for sota_noprune (4 edges) ---
+    edges (u,v,w): [(0, 2, 1.581), (0, 3, 3.036), (1, 2, 4.127), (2, 3, 4.959)]
+    oracle = 9.575999999999999   got = None
+--- minimal failing example for sota_nozero (8 edges) ---
+    edges (u,v,w): [(0, 1, 2.979), (0, 3, 2.301), (0, 4, 3.608), (2, 3, 3.285), (2, 5, 4.72), (3, 4, 2.121), (3, 5, 2.41), (4, 5, 2.513)]
+    oracle = 7.0440000000000005   got = 8.030000000000001
+
+targeted probes:
+  [BAD] P1a node-0-falsy triangle (sota):
+         expected=7.0
+         got     =None
+  [OK ] P1b same graph, labels+1 (isolates ancestor/descendant skip):
+         expected=7.0
+         got     =7.0
+  [OK ] P1c same graph, LCA guard repaired:
+         expected=7.0
+         got     =7.0
+  [OK ] P2 ancestor-descendant chord (square):
+         expected=4.0
+         got     =4.0
+  [BAD] P3 hybrid `gamma <= 4*min_edge_w` early break (bound=8 -> radius 4):
+         expected=3.0
+         got     =4.0
+  [BAD] P3b BMSSP-full dist from src 1 on C6 (true 0,1,2,3,2,1):
+         expected={1: 0.0, 2: 1.0, 3: 2.0, 4: 3.0, 5: 2.0, 6: 1.0}
+         got     ={1: 0.0, 2: 0.0, 3: 1.0, 4: inf, 5: 1.0, 6: 0.0}
+  [OK ] P4 bound=None (C6, w=1):
+         expected=6.0
+         got     =6.0
+  [OK ] P4 bound=gamma(6): radius becomes 3 = gamma/2 (correct):
+         expected=6.0
+         got     =6.0
+  [BAD] P4 bound=gamma/2(3) <- dijkstra.py:54; radius becomes 1.5:
+         expected=6.0
+         got     =None
+  [OK ] P5 EulerLCA on disconnected graph:
+         expected=3.0
+         got     =3.0
+  [BAD] P6 sota return type (cycle reconstruction absent):
+         expected=list-of-nodes
+         got     =float
+  [BAD] P7 LCATree.log_max_depth:
+         expected=ceil(log2(n)) (data dependent)
+         got     =20
+
+=== auxiliary experiments (run separately, same venv) ===
+
+(1) Soundness of the "scan ALL edges of G with possibly-tentative labels" step
+    (shortest_cycle.py:418-430).  500 random weighted graphs, every value the
+    scan computes was checked against an explicit reconstruction:
+      graphs with a scanned 'cycle' that is NOT a real simple cycle : 0/500
+      sota under-reports (gamma < true girth  => UNSOUND)            : 0
+      sota over-reports  (gamma > true girth  => missed cycle)       : 29
+      sota returns None though a cycle exists                        : 1
+    => the scan is ONE-SIDED SOUND.  Reason: relaxation only ever happens out
+    of an already-settled u, so delta(v) = delta(pred(v)) + w(pred(v),v) holds
+    EXACTLY for every v that has a predecessor, even for v never settled.
+    Hence delta(u)+delta(v)+w(u,v)-2*delta(p) is the exact weight of the closed
+    walk (tree path p->u) + (u,v) + (tree path v->p), and because p is the LCA
+    in a genuine forest with p != u, v, that walk is a simple cycle of >= 3
+    vertices.  All errors are one-sided (missed cycles), never phantom ones.
+
+(2) Truncation semantics.  Code settles u iff delta(u) <= gamma_pre/2 where
+    gamma_pre is gamma FROZEN at the start of the root search; the manuscript
+    settles v only while delta(v) < gamma_live/2 with gamma updated inside the
+    while loop.  300 random trials:
+      manuscript Q is a subset of code Q in all 300 trials : True
+      code Q strictly LARGER                               : 189/300
+    => the code's settled set is a superset.  Harmless for correctness
+    (more non-tree edges scanned = more cycles found), costly for the
+    complexity claim: the gamma/2 cutoff is much weaker than advertised.
+
+(3) Discard-rule trace on the minimal failing example
+    edges: (0,1,2.979) (0,3,2.301) (0,4,3.608) (2,3,3.285) (2,5,4.72)
+           (3,4,2.121) (3,5,2.41) (4,5,2.513);   true girth = 7.044
+    root 0: gamma=8.030, discards {2,5}
+    root 1: gamma=8.030, discards {3,4}
+    final gamma = 8.030, roots never used = {2,3,4,5}
+    The MWC is the triangle 3-4-5 (2.121+2.513+2.410 = 7.044).  It is not a
+    fundamental cycle of the SPT rooted at 0 (3 and 4 are both children of 0),
+    and every one of its vertices is discarded by `dist + 2*w_min >= gamma`
+    before it can be used as a root.
