@@ -35,18 +35,24 @@ class DijkstraStrategy(SSSPStrategy):
         )
         return distances, preds, depth
 
-# Lazy import to avoid circular deps when bmssp_lite imports this file
+# Lazy import to avoid circular deps when bmssp_lite imports this file.
+# NOTE: these are imported independently -- bmssp_full has been quarantined under
+# experimental/ (see experimental/README.md), and its absence must not also
+# disable bmssp_lite.
 try:
     from bmssp_lite import BMSSPLiteStrategy  # noqa: F401
-    from bmssp_full import BMSSPFullStrategy  # noqa: F401
 except ModuleNotFoundError:
     BMSSPLiteStrategy = None  # type: ignore
+try:
+    from bmssp_full import BMSSPFullStrategy  # noqa: F401
+except ModuleNotFoundError:
     BMSSPFullStrategy = None  # type: ignore
 
 # ------------------------------------------------------------------
 # LCA back-end selection
 # ------------------------------------------------------------------
 from shortest_cycle import LCATree  # binary lifting
+# lca_euler has been quarantined under experimental/ (see experimental/README.md).
 try:
     from lca_euler import EulerLCA
 except ModuleNotFoundError:
@@ -64,7 +70,13 @@ class BinaryLCAStrategy(LCAStrategy):
 class EulerLCAStrategy(LCAStrategy):
     def build(self, parents, depth, nodes):  # type: ignore[override]
         if EulerLCA is None:
-            raise ImportError("lca_euler module not found")
+            raise ImportError(
+                "The Euler-tour LCA back-end is quarantined under experimental/ because "
+                "differential testing against an edge-removal oracle found it wrong on "
+                "69.5% of random graphs with 4 <= n <= 9 (plus 104 exceptions). "
+                "Use the default binary-lifting LCA, or reference/mwc.py for a validated "
+                "implementation. See experimental/README.md."
+            )
         return EulerLCA(parents, depth, nodes)
 
 # ------------------------------------------------------------------
@@ -137,7 +149,12 @@ def hybrid_mwc_length(G: nx.Graph, *, use_bmssp_lite: bool = False, use_euler_lc
     if use_bmssp_lite:
         from bmssp_lite import BMSSPLiteStrategy  # local import
         sssp = BMSSPLiteStrategy()
-    elif not use_bmssp_lite and BMSSPFullStrategy is not None:
-        sssp = BMSSPFullStrategy()
+    # NOTE: this used to fall through to BMSSPFullStrategy() as the DEFAULT whenever
+    # bmssp_full imported successfully.  That back-end disagreed with an exact
+    # edge-removal oracle on 91.5% of random graphs with 4 <= n <= 9, and returned an
+    # edge set that was not a cycle at all in 94 of 94 cases checked -- and those edge
+    # sets were being written into the Loop Modulus QP constraint matrix unvalidated.
+    # It is now quarantined under experimental/ and is never selected implicitly.
+    # sssp = None means HybridMWC uses its baseline Dijkstra strategy.
     lca_strat = EulerLCAStrategy() if use_euler_lca else BinaryLCAStrategy()
     return HybridMWC(G, sssp=sssp, lca=lca_strat).minimum_weight_cycle(bound=bound, sources=source_seeds, return_edges=return_edges)
