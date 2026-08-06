@@ -142,14 +142,27 @@ $\alpha$ & $\beta$ & $\kappa(\alpha,\beta)$ & \textbf{max ratio} & \textbf{mean 
         kaps = "$\\infty$" if kap == float("inf") else f"{kap:.2f}"
         out.append(f"{a:.2f} & {b:.2f} & {kaps} & {mx:.4f} & {mn:.4f} & "
                    f"{dels} & {work:.3f} \\\\ \\hline")
+    # Derive every quantity quoted in the caption from the data, so a rerun
+    # cannot leave the prose asserting something the table no longer shows.
+    n_inst = max(len(v) for v in by_pair.values())
+    worst_ratio = max(r["ratio"] for r in d["rows"])
+    wf = [r["work_frac"] for r in d["rows"] if r.get("work_frac")]
+    max_saved = (1 - min(wf)) * 100 if wf else 0.0
+    ratio_clause = (
+        r"the ratio is exactly $1$, not merely below $\kappa(\alpha,\beta)$"
+        if worst_ratio <= 1 + 1e-9 else
+        f"the worst ratio observed was ${worst_ratio:.4f}$, far below "
+        r"$\kappa(\alpha,\beta)$")
     out.append(r"""\end{tabular}
-\caption{Approximate mode on the multiscale family, $75$ instances per
+\caption{Approximate mode on the multiscale family, $""" + str(n_inst) +
+        r"""$ instances per
 parameter pair. ``max ratio'' and ``mean ratio'' are $\widehat\gamma/\gamma^*$
 over all instances; ``deletions'' is the total number of vertices the discard
-rule removed across those instances; ``work'' is settled vertices relative to
-exact mode on the same instance. The returned cycle was a minimum weight cycle
-in every run at every pair --- the ratio is exactly $1$, not merely below
-$\kappa(\alpha,\beta)$ --- and the work saved never exceeded $0.2\%$.}
+rule removed across those instances; ``work'' is mean settled vertices relative
+to exact mode on the same instance. The returned cycle was a minimum weight
+cycle in every run at every pair --- """ + ratio_clause +
+        r""" --- and no instance saved more than $""" + f"{max_saved:.1f}" +
+        r"""\%$ of the settled vertices.}
 \label{tab:frontier}
 \end{table}""")
     return "\n".join(out)
