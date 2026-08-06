@@ -452,6 +452,7 @@ def mwc(
     cycle0: Optional[Sequence[Any]] = None,
     roots_are_transversal: bool = False,
     allow_zero_weights: bool = False,
+    radius_factor: float = 0.5,
     tol: float = 1e-9,
 ) -> MWCResult:
     """Algorithm 1 of the manuscript, repaired (see module docstring).
@@ -462,6 +463,14 @@ def mwc(
         Discard-rule parameters, ``alpha, beta >= 0`` and
         ``1 - 2*alpha + 2*beta > 0``.  ``alpha <= beta`` is exact: the code
         *asserts* that no vertex is ever deleted in that regime.
+    radius_factor
+        Phase-1 truncation radius as a multiple of ``gamma_in``.  The default
+        ``0.5`` is Algorithm 1 as analysed; it is the ONLY value for which
+        exactness is proven.  Proposition (Sharpness)(i) shows every factor
+        ``< 1/2`` can miss the MWC, and any factor ``> 1/2`` is still exact but
+        settles a superset.  Exposed solely so the ablation study can measure
+        what the truncation buys (``radius_factor=inf`` disables it); leave it
+        alone in production.
     root_order
         Fixed outer-loop order; must be a permutation of ``V``.  Defaults to
         insertion order of ``adj``.
@@ -527,7 +536,7 @@ def mwc(
             continue
         processed.add(x)                          # x counts as processed now
         gamma_in = gamma
-        radius = INF if gamma_in == INF else gamma_in / 2.0
+        radius = INF if gamma_in == INF else radius_factor * gamma_in
 
         # ---- phase 1: truncated Dijkstra on H = G[active] ------------------
         delta, pred, Q = _truncated_dijkstra(adj, x, active, radius, index)

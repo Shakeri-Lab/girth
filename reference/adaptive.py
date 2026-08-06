@@ -1,0 +1,249 @@
+"""Adaptive root-set selection, and the A0-A7 ablation ladder.
+
+Motivation
+----------
+Table 5 of the manuscript shows the cycle-transversal reduction is *conditional*:
+it wins by up to 71x when mu/n is small and loses 13-35% of the speed when
+mu/n approaches 1, because the 2-core peel, the block decomposition and the
+seed are paid for without buying a root reduction.  The manuscript's own
+recommendation ("compute mu first --- it is O(n+m) --- and use transversal
+roots only when mu/n is small") is stated but never measured.  This module
+turns that recommendation into an algorithm and makes it measurable.
+
+The observation that makes it cheap
+-----------------------------------
+The decision quantity mu = m - n + c(G) and the fundamental-cycle seed gamma_0
+come from the SAME spanning forest (`_transversal_for`).  So a single O(n+m)
+pass yields all three of: the switch statistic mu, a valid initial bound
+gamma_0, and the transversal S itself.  The seed is therefore free on BOTH
+branches -- including the all-roots branch, which in the manuscript's
+Table 5 configuration ("allroots") runs unseeded.  The adaptive algorithm is
+consequently never worse than an unseeded all-roots run by more than the one
+forest pass, and is strictly better whenever the seed activates the
+radius-gamma/2 truncation earlier.
+
+Exactness
+---------
+Every variant here is exact.  A0-A7 all run with alpha = beta = 0, so the
+discard rule provably never fires (Theorem, No discarding when alpha <= beta).
+The only variation is *which* accelerations are switched on.  A0 additionally
+sets radius_factor = inf, disabling truncation -- still exact, just slower.
+Root sets are always cycle transversals or all of V, so exactness follows from
+Theorem (Exactness with cycle-transversal roots) in every case.
+"""
+from __future__ import annotations
+
+import math
+from collections import defaultdict
+from typing import Any, Dict, List, Optional, Sequence, Tuple
+
+from mwc import (
+    INF,
+    MWCResult,
+    _subgraph_from_edges,
+    _transversal_for,
+    biconnected_components,
+    mwc,
+    mwc_transversal,
+    spanning_forest,
+    two_core,
+)
+
+# The manuscript's Table 5 crossover sits between mu/n = 0.344 (transversal
+# 1.58x faster) and mu/n = 0.951 (transversal 0.65x as fast).  THETA_DEFAULT is
+# a provisional midpoint; `campaign.py theta` measures the true crossover and
+# the value is refit from that sweep rather than assumed.
+THETA_DEFAULT = 0.5
+
+
+def cyclomatic_number(adj: Dict[Any, Dict[Any, float]]) -> int:
+    """mu(G) = m - n + c(G), in O(n+m), as the count of non-tree edges."""
+    _, _, non_tree, _ = spanning_forest(adj)
+    return len(non_tree)
+
+
+def greedy_vc_transversal(adj: Dict[Any, Dict[Any, float]]) -> Tuple[set, float, Optional[Tuple]]:
+    """Greedy max-degree vertex cover of the non-tree edges (variant A6).
+
+    Any vertex cover of E \\ E(T_0) is a cycle transversal, since every simple
+    cycle contains a non-tree edge.  Measured at 26% fewer roots than the
+    one-endpoint rule in the manuscript's transversal study.  Returns the same
+    triple shape as `_transversal_for` minus mu.
+    """
+    parent, roots, non_tree, order = spanning_forest(adj)
+    if not non_tree:
+        return set(), INF, None
+    # gamma_0 and the realising cycle come from the shared forest pass.
+    _, gamma0, cyc0, _ = _transversal_for(adj)
+
+    remaining = {(u, v) if str(u) <= str(v) else (v, u) for u, v, _ in non_tree}
+    deg: Dict[Any, int] = defaultdict(int)
+    for u, v in remaining:
+        deg[u] += 1
+        deg[v] += 1
+    S: set = set()
+    while remaining:
+        x = max(deg, key=lambda z: (deg[z], str(z)))
+        if deg[x] == 0:
+            break
+        S.add(x)
+        for e in [e for e in remaining if x in e]:
+            remaining.discard(e)
+            deg[e[0]] -= 1
+            deg[e[1]] -= 1
+        deg[x] = 0
+    return S, gamma0, cyc0
+
+
+def _run_on_blocks(adj, *, root_fn, gamma0, cycle0, use_2core, use_blocks,
+                   certify, collect_stats, radius_factor=0.5):
+    """Shared driver: optional 2-core peel, optional block split, then one
+    root search pass per block, threading the global gamma through as the
+    truncation bound (Proposition, Core and block reduction)."""
+    work = two_core(adj) if use_2core else dict(adj)
+    if use_blocks:
+        blocks = [_subgraph_from_edges(e) for e in biconnected_components(work)]
+        blocks = [b for b in blocks if sum(len(d) for d in b.values()) // 2 >= len(b)]
+    else:
+        blocks = [work] if work else []
+
+    gamma = float(gamma0)
+    best = cycle0
+    agg = {"roots_run": 0, "total_settled": 0, "blocks": len(blocks),
+           "n_2core": len(work), "m_2core": sum(len(d) for d in work.values()) // 2}
+    for b in blocks:
+        if len(b) < 3:
+            continue
+        roots = root_fn(b) if root_fn is not None else None
+        if roots is not None and not roots:
+            continue
+        # gamma is a bound certified on another block / the whole graph, so the
+        # realising cycle need not live in b: pass it as an external bound
+        # (cycle0=None), exactly as mwc_transversal does across blocks.
+        res = mwc(b, roots=roots, gamma0=gamma, cycle0=None,
+                  certify=certify, collect_stats=collect_stats,
+                  radius_factor=radius_factor,
+                  roots_are_transversal=roots is not None)
+        if res.length < gamma:
+            gamma, best = res.length, res.cycle
+        agg["roots_run"] += res.stats.get("roots_run", 0)
+        agg["total_settled"] += res.stats.get("total_settled", 0)
+    return gamma, best, agg
+
+
+def mwc_adaptive(
+    adj: Dict[Any, Dict[Any, float]],
+    *,
+    theta: float = THETA_DEFAULT,
+    seed_allroots: bool = True,
+    certify: bool = True,
+    collect_stats: bool = True,
+) -> MWCResult:
+    """Exact MWC with the root set chosen by the measured mu/n statistic.
+
+    One spanning-forest pass (O(n+m)) yields mu, the seed gamma_0 and the
+    transversal S together.  If mu <= theta*n the transversal branch runs
+    (2-core + blocks + transversal roots); otherwise all roots run.  Exact in
+    both branches.
+
+    `seed_allroots` controls whether the dense branch reuses gamma_0.  It is
+    free to compute, but it is NOT unconditionally a win: gamma_0 is the
+    lightest fundamental cycle of an arbitrary spanning forest and can be a
+    poor bound, in which case seeding makes the first searches truncate at a
+    large radius while an unseeded first search may stumble onto a near-optimal
+    gamma immediately and truncate harder thereafter.  Which effect dominates
+    is an empirical question; `campaign.py timing` measures both.
+    """
+    n = len(adj)
+    S, gamma0, cyc0, mu = _transversal_for(adj)
+    took_transversal = bool(S) and mu <= theta * n
+
+    if not S:                      # forest: no cycle at all
+        return MWCResult(length=INF, cycle=None, certified=True, mode="exact",
+                         kappa=1.0,
+                         stats={"n": n, "mu": 0, "mu_over_n": 0.0, "branch": "forest",
+                                "theta": theta, "roots_run": 0, "total_settled": 0})
+
+    if took_transversal:
+        res = mwc_transversal(adj, certify=certify, collect_stats=collect_stats)
+        stats = dict(res.stats)
+        stats.update(branch="transversal")
+        length, cycle = res.length, res.cycle
+    elif seed_allroots:
+        res = mwc(adj, gamma0=gamma0, cycle0=cyc0, certify=certify,
+                  collect_stats=collect_stats)
+        stats = dict(res.stats)
+        stats.update(branch="allroots_seeded")
+        length, cycle = res.length, res.cycle
+    else:
+        res = mwc(adj, certify=certify, collect_stats=collect_stats)
+        stats = dict(res.stats)
+        stats.update(branch="allroots_unseeded")
+        length, cycle = res.length, res.cycle
+
+    stats.update(n=n, mu=mu, mu_over_n=mu / n if n else 0.0, theta=theta,
+                 gamma0=gamma0)
+    return MWCResult(length=length, cycle=cycle, certified=certify, mode="exact",
+                     kappa=1.0, stats=stats)
+
+
+# --------------------------------------------------------------------------
+# The ablation ladder.  Each rung adds exactly one acceleration to the one
+# above it, so the delta between consecutive rows is attributable to that
+# single mechanism.  A1 and A5 reproduce Table 5's "allroots" and
+# "transversal" columns respectively.
+# --------------------------------------------------------------------------
+ABLATION_LABELS = {
+    "A0": "all roots, no truncation (radius = inf), no seed",
+    "A1": "+ radius-gamma/2 truncation                      [Table 5 allroots]",
+    "A2": "+ fundamental-cycle seed gamma_0",
+    "A3": "+ 2-core peeling",
+    "A4": "+ biconnected block decomposition",
+    "A5": "+ transversal roots (one endpoint per non-tree edge) [Table 5 transversal]",
+    "A6": "+ greedy vertex-cover transversal (smaller S)",
+    "A7": "+ adaptive mu/n switch                            [this work]",
+}
+
+
+def run_ablation(adj, variant: str, *, theta: float = THETA_DEFAULT,
+                 certify: bool = False, collect_stats: bool = True):
+    """Run one rung of the ladder.  Returns (length, cycle, stats)."""
+    if variant == "A0":
+        r = mwc(adj, certify=certify, collect_stats=collect_stats,
+                radius_factor=math.inf)
+        return r.length, r.cycle, dict(r.stats)
+    if variant == "A1":
+        r = mwc(adj, certify=certify, collect_stats=collect_stats)
+        return r.length, r.cycle, dict(r.stats)
+    if variant == "A2":
+        _, g0, c0, _ = _transversal_for(adj)
+        r = mwc(adj, gamma0=g0, cycle0=c0, certify=certify,
+                collect_stats=collect_stats)
+        return r.length, r.cycle, dict(r.stats)
+    if variant == "A3":
+        _, g0, c0, _ = _transversal_for(adj)
+        g, c, agg = _run_on_blocks(adj, root_fn=None, gamma0=g0, cycle0=c0,
+                                   use_2core=True, use_blocks=False,
+                                   certify=certify, collect_stats=collect_stats)
+        return g, c, agg
+    if variant == "A4":
+        _, g0, c0, _ = _transversal_for(adj)
+        g, c, agg = _run_on_blocks(adj, root_fn=None, gamma0=g0, cycle0=c0,
+                                   use_2core=True, use_blocks=True,
+                                   certify=certify, collect_stats=collect_stats)
+        return g, c, agg
+    if variant == "A5":
+        r = mwc_transversal(adj, certify=certify, collect_stats=collect_stats)
+        return r.length, r.cycle, dict(r.stats)
+    if variant == "A6":
+        _, g0, c0, _ = _transversal_for(adj)
+        g, c, agg = _run_on_blocks(
+            adj, root_fn=lambda b: greedy_vc_transversal(b)[0],
+            gamma0=g0, cycle0=c0, use_2core=True, use_blocks=True,
+            certify=certify, collect_stats=collect_stats)
+        return g, c, agg
+    if variant == "A7":
+        r = mwc_adaptive(adj, theta=theta, certify=certify,
+                         collect_stats=collect_stats)
+        return r.length, r.cycle, dict(r.stats)
+    raise ValueError(f"unknown ablation variant {variant!r}")
