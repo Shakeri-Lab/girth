@@ -210,7 +210,16 @@ def mwc_adaptive(
                                 "theta": theta, "roots_run": 0, "total_settled": 0})
 
     if took_transversal:
-        res = mwc_transversal(adj, certify=certify, collect_stats=collect_stats)
+        # use_blocks=False on measured evidence.  The block reduction is
+        # sound (Proposition, Core and block reduction) but was a pessimization
+        # on all ten graphs probed -- five synthetic families and five real
+        # road/power networks -- because the 2-core is dominated by ONE giant
+        # biconnected component in every case (largest block = 91-100% of the
+        # 2-core), so Hopcroft-Tarjan is paid for and splits nothing.  Cost
+        # ranged from 10% (grid) to 34% (sydney-road).  The 2-core peel is
+        # kept: it is cheap and removes 92% of the near-tree family.
+        res = mwc_transversal(adj, use_blocks=False, certify=certify,
+                              collect_stats=collect_stats)
         stats = dict(res.stats)
         stats.update(branch="transversal")
         length, cycle = res.length, res.cycle
