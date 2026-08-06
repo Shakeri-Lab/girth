@@ -60,9 +60,12 @@ def provenance() -> Dict[str, Any]:
     try:
         sha = subprocess.check_output(["git", "-C", here, "rev-parse", "HEAD"],
                                       stderr=subprocess.DEVNULL).decode().strip()
-        dirty = bool(subprocess.check_output(
+        # Record WHICH files differ, not just that some do: a bare boolean
+        # cannot distinguish "the measured code was edited" from "a job wrapper
+        # path was tweaked", and only the first invalidates the numbers.
+        dirty = [l.strip() for l in subprocess.check_output(
             ["git", "-C", here, "status", "--porcelain"],
-            stderr=subprocess.DEVNULL).decode().strip())
+            stderr=subprocess.DEVNULL).decode().splitlines() if l.strip()]
     except Exception:
         sha, dirty = "unknown", None
     cpu = platform.processor() or ""

@@ -18,7 +18,7 @@
 set -euo pipefail
 
 ROOT=/scratch/hs9hd/mwc_campaign_v2
-CODE=$ROOT/code
+CODE=$ROOT/repo/reference   # full checkout, so git status is clean and the SHA is exact
 OUT=$ROOT/results
 mkdir -p "$OUT" "$ROOT/logs"
 cd "$CODE"

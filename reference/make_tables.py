@@ -20,6 +20,19 @@ FAMILY_LABEL = {
     "dense_er": "dense ER",
 }
 
+# Typeset forms of the ablation rungs.  adaptive.py's ASCII labels are for
+# terminal output and contain characters LaTeX would choke on (gamma_0).
+ABLATION_TEX = {
+    "A0": "all roots, no truncation, no seed",
+    "A1": "$+$ radius-$\\gamma/2$ truncation",
+    "A2": "$+$ fundamental-cycle seed $\\gamma_0$",
+    "A3": "$+$ $2$-core peeling",
+    "A4": "$+$ block decomposition",
+    "A5": "$+$ transversal roots",
+    "A6": "$+$ greedy vertex-cover transversal",
+    "A7": "$+$ adaptive $\\mu/n$ switch",
+}
+
 
 def load(results, name):
     p = os.path.join(results, name)
@@ -50,9 +63,12 @@ def table_runtime(d, n_target=1600):
         cut = 1 - r["roots_transversal"] / r["roots_allroots"]
         best_fixed = min(r["t_allroots"], r["t_transversal"])
         rel = best_fixed / r["t_adaptive"]
+        # NB: the percent sign must be escaped -- an unescaped % comments out
+        # the rest of the line, including the row terminator, and silently
+        # merges two table rows.
         out.append(
             f"{FAMILY_LABEL.get(r['family'], r['family']):<14} & "
-            f"{r['m']:,} & {r['mu_over_n']:.3f} & {cut:.0%} & "
+            f"{r['m']:,} & {r['mu_over_n']:.3f} & {cut*100:.0f}\\% & "
             f"{r['t_allroots']:.4f} & {r['t_transversal']:.4f} & "
             f"{r['t_adaptive']:.4f} & {rel:.2f}$\\times$ \\\\ \\hline".replace(",", "\\,"))
     out.append(r"""\end{tabular}
@@ -83,7 +99,7 @@ def table_ablation(d, n_target=1600):
     for v in ["A0", "A1", "A2", "A3", "A4", "A5", "A6", "A7"]:
         if v not in by_var:
             continue
-        label = d["labels"][v].split("[")[0].strip()
+        label = ABLATION_TEX[v]
         cells = []
         for f in fams:
             r = by_var[v].get(f)
