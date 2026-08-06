@@ -33,6 +33,7 @@ Theorem (Exactness with cycle-transversal roots) in every case.
 """
 from __future__ import annotations
 
+import heapq
 import math
 from collections import defaultdict
 from typing import Any, Dict, List, Optional, Sequence, Tuple
@@ -78,21 +79,40 @@ def greedy_vc_transversal(adj: Dict[Any, Dict[Any, float]]) -> Tuple[set, float,
     # gamma_0 and the realising cycle come from the shared forest pass.
     _, gamma0, cyc0, _ = _transversal_for(adj)
 
-    remaining = {(u, v) if str(u) <= str(v) else (v, u) for u, v, _ in non_tree}
-    deg: Dict[Any, int] = defaultdict(int)
-    for u, v in remaining:
-        deg[u] += 1
-        deg[v] += 1
+    # O(m + mu log mu): incident-edge lists plus a lazy max-heap on degree.
+    # A naive rescan of the surviving edge set per pick is O(mu^2) and, measured
+    # at n=1600, made this variant 10x SLOWER than the one-endpoint rule on the
+    # grid family -- i.e. it would have benchmarked the implementation rather
+    # than the cover.
+    edges = [(u, v) if str(u) <= str(v) else (v, u) for u, v, _ in non_tree]
+    incident: Dict[Any, List[int]] = defaultdict(list)
+    for i, (u, v) in enumerate(edges):
+        incident[u].append(i)
+        incident[v].append(i)
+    alive = [True] * len(edges)
+    deg = {x: len(ix) for x, ix in incident.items()}
+    heap = [(-d, str(x), x) for x, d in deg.items()]
+    heapq.heapify(heap)
+
     S: set = set()
-    while remaining:
-        x = max(deg, key=lambda z: (deg[z], str(z)))
+    covered = 0
+    while covered < len(edges) and heap:
+        negd, _, x = heapq.heappop(heap)
+        if -negd != deg.get(x, 0):        # stale entry
+            continue
         if deg[x] == 0:
-            break
+            continue
         S.add(x)
-        for e in [e for e in remaining if x in e]:
-            remaining.discard(e)
-            deg[e[0]] -= 1
-            deg[e[1]] -= 1
+        for i in incident[x]:
+            if not alive[i]:
+                continue
+            alive[i] = False
+            covered += 1
+            u, v = edges[i]
+            for y in (u, v):
+                deg[y] -= 1
+                if y != x:
+                    heapq.heappush(heap, (-deg[y], str(y), y))
         deg[x] = 0
     return S, gamma0, cyc0
 

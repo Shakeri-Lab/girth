@@ -54,9 +54,9 @@ def main():
     ax.plot(d, oracle, "o-", color="black", lw=1.4, ms=3.5,
             label="edge removal")
     ax.plot(d, allroots, "s--", color="#1f6fb4", lw=1.4, ms=3.5,
-            label="Alg.\\ 1, all roots")
+            label="Alg. 1, all roots")
     ax.plot(d, transv, "^:", color="#c0392b", lw=1.6, ms=4,
-            label="Alg.\\ 1, transversal")
+            label="Alg. 1, transversal")
     ax.set_yscale("log")
     ax.set_xlabel(r"grid side $d$")
     ax.set_ylabel("argmin operations")
