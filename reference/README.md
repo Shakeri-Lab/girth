@@ -23,6 +23,29 @@ summary below. No result in the paper is produced by them.
 | `RESULTS.md` | measured validation campaign. |
 | `AUDIT_legacy_vs_oracle.txt` | differential audit of the legacy code paths. |
 
+### Experiments campaign (2026-08)
+
+| file | role |
+|---|---|
+| `adaptive.py` | `mwc_adaptive` — picks the root set at run time from `mu >= m-n+1`, decided in O(1); also the A0–A7 ablation ladder. |
+| `campaign.py` | driver: `timing`, `ablation`, `theta`, `frontier`, `argmin`, `real`. Every subcommand cross-checks exactness and records provenance. |
+| `make_tables.py` | turns the campaign JSON into the paper's LaTeX tables, stamped with source file, commit, job id and CPU. |
+| `plot_argmin.py` | the argmin figure, emitted at its final typeset width so LaTeX does not rescale the labels. |
+| `probe_blocks.py` | when does the block decomposition pay? (measured: not on any graph tried). |
+| `probe_stats_bias.py` | does `collect_stats=True` flatter the low-root configurations? (measured: by under 10%). |
+| `campaign_array_v2.slurm`, `real_array.slurm` | SLURM job arrays; one task per experiment, one task per real network. |
+| `realnets/` | the ten real networks, uniform `u v w` edge lists plus per-network JSON recording source, weight semantics and preprocessing; `fetch_all.py` re-acquires them. |
+
+Reproduce the measured tables with, e.g.
+
+```
+python campaign.py --out results --repeats 5 timing    --sizes 400 900 1600
+python campaign.py --out results --repeats 5 ablation  --sizes 400 900 1600
+python campaign.py --out results --repeats 3 frontier  --sizes 200 400 800
+python campaign.py --out results --repeats 5 real --data realnets --only sydney-road --tag sydney-road
+python make_tables.py --results results --out <manuscript>/tables
+```
+
 ## Running
 
 ```bash
