@@ -443,6 +443,11 @@ def load_edges(path) -> Dict[Any, Dict[Any, float]]:
 def cmd_real(args):
     rows = []
     files = sorted(f for f in os.listdir(args.data) if f.endswith(".edges"))
+    if args.only:
+        files = [f for f in files if f[:-6] in args.only]
+        if not files:
+            print(f"no .edges matching {args.only}", flush=True)
+            sys.exit(2)
     for fn in files:
         path = os.path.join(args.data, fn)
         adj = load_edges(path)
@@ -480,8 +485,9 @@ def cmd_real(args):
         rec["certified_girth_matches"] = agree([r_cert.length, r_all.length])
         rows.append(rec)
         print(json.dumps(rec), flush=True)
-    emit(args.out, "real.json", {"rows": rows, "repeats": args.repeats,
-                                 "data_dir": os.path.abspath(args.data)})
+    name = f"real_{args.tag}.json" if args.tag else "real.json"
+    emit(args.out, name, {"rows": rows, "repeats": args.repeats,
+                          "data_dir": os.path.abspath(args.data)})
 
 
 # --------------------------------------------------------------------- main
@@ -537,6 +543,13 @@ def main():
     r = sub.add_parser("real")
     r.add_argument("--data", required=True)
     r.add_argument("--max-n", type=int, default=60000)
+    r.add_argument("--only", nargs="*", default=None,
+                   help="restrict to these network names (one array task per "
+                        "network, so the heavy road graphs get their own "
+                        "walltime instead of serialising behind the cheap ones)")
+    r.add_argument("--tag", default=None,
+                   help="suffix for the output filename, so per-network tasks "
+                        "do not overwrite each other")
     r.set_defaults(func=cmd_real)
 
     args = p.parse_args()

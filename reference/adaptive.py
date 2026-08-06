@@ -137,7 +137,7 @@ def mwc_adaptive(
     adj: Dict[Any, Dict[Any, float]],
     *,
     theta: float = THETA_DEFAULT,
-    seed_allroots: bool = True,
+    seed_allroots: bool = False,
     certify: bool = True,
     collect_stats: bool = True,
 ) -> MWCResult:
@@ -167,13 +167,16 @@ def mwc_adaptive(
     branch is exact regardless, so the cost is at most the transversal
     overhead on a graph near the boundary, never a wrong answer.
 
-    `seed_allroots` controls whether the dense branch pays for gamma_0
-    separately.  gamma_0 is NOT unconditionally a win: it is the lightest
-    fundamental cycle of an arbitrary spanning forest and can be a poor bound,
-    in which case seeding makes the early searches truncate at a large radius
-    while an unseeded first search may stumble onto a near-optimal gamma
-    immediately and truncate harder thereafter.  Which effect dominates is an
-    empirical question; `campaign.py timing` measures both.
+    `seed_allroots` controls whether the dense branch also pays for gamma_0.
+    It defaults to FALSE on measured evidence: obtaining gamma_0 means running
+    `_transversal_for`, which builds the forest distance structure and
+    evaluates a tree distance for EVERY non-tree edge -- work proportional to
+    mu, i.e. largest exactly on the branch that needs it least.  At n = 1600
+    seeding the dense branch cost 15% on the grid family (0.0267s vs 0.0233s)
+    and 7% on small world, against a best case of 2% on dense ER.  With it off,
+    the dense branch is byte-for-byte the published all-roots configuration, so
+    the switch is exactly "pick the better of the two configurations of
+    Table 5, decided in O(1)" and adds nothing to either branch.
     """
     n = len(adj)
     m = sum(len(d) for d in adj.values()) // 2
