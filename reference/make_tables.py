@@ -143,12 +143,13 @@ $\alpha$ & $\beta$ & $\kappa(\alpha,\beta)$ & \textbf{max ratio} & \textbf{mean 
         out.append(f"{a:.2f} & {b:.2f} & {kaps} & {mx:.4f} & {mn:.4f} & "
                    f"{dels} & {work:.3f} \\\\ \\hline")
     out.append(r"""\end{tabular}
-\caption{Approximate mode on the multiscale family. ``max ratio'' and ``mean
-ratio'' are $\widehat\gamma/\gamma^*$ over all instances; ``deletions'' is the
-total number of vertices the discard rule removed; ``work'' is settled
-vertices relative to exact mode on the same instance. The guarantee
-$\kappa(\alpha,\beta)$ is never violated, and the realised ratio stays far
-below it.}
+\caption{Approximate mode on the multiscale family, $75$ instances per
+parameter pair. ``max ratio'' and ``mean ratio'' are $\widehat\gamma/\gamma^*$
+over all instances; ``deletions'' is the total number of vertices the discard
+rule removed across those instances; ``work'' is settled vertices relative to
+exact mode on the same instance. The returned cycle was a minimum weight cycle
+in every run at every pair --- the ratio is exactly $1$, not merely below
+$\kappa(\alpha,\beta)$ --- and the work saved never exceeded $0.2\%$.}
 \label{tab:frontier}
 \end{table}""")
     return "\n".join(out)
