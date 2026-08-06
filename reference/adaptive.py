@@ -49,11 +49,13 @@ from mwc import (
     two_core,
 )
 
-# The manuscript's Table 5 crossover sits between mu/n = 0.344 (transversal
-# 1.58x faster) and mu/n = 0.951 (transversal 0.65x as fast).  THETA_DEFAULT is
-# a provisional midpoint; `campaign.py theta` measures the true crossover and
-# the value is refit from that sweep rather than assumed.
-THETA_DEFAULT = 0.5
+# Fitted from `campaign.py theta` (job 18104376_2, Xeon Gold 6248, n = 800 and
+# 1600, 3 instances per point).  Median transversal-vs-allroots speedup stays
+# above 1 through mu/n = 0.7 (1.11x at n=1600) and crosses below 1 at
+# mu/n = 0.8-1.0, so the switch is set at 0.8 rather than at the midpoint 0.5
+# guessed before the sweep -- 0.5 gave away the 1.1-1.3x still available in
+# 0.5 <= mu/n <= 0.7.
+THETA_DEFAULT = 0.8
 
 
 def cyclomatic_number(adj: Dict[Any, Dict[Any, float]]) -> int:
@@ -141,27 +143,47 @@ def mwc_adaptive(
 ) -> MWCResult:
     """Exact MWC with the root set chosen by the measured mu/n statistic.
 
-    One spanning-forest pass (O(n+m)) yields mu, the seed gamma_0 and the
-    transversal S together.  If mu <= theta*n the transversal branch runs
-    (2-core + blocks + transversal roots); otherwise all roots run.  Exact in
-    both branches.
+    The decision must cost NOTHING, or the switch eats the speedup it exists
+    to protect.  Two earlier versions failed this test on the theta sweep: one
+    took mu from `_transversal_for` (which also builds the forest distance
+    structure and evaluates gamma_0 over every non-tree edge) and gave away
+    44% of the available speedup at mu/n = 0.02 -- 8.2x instead of 14.5x; a
+    second took mu from a bare spanning forest and still gave away 36%.  The
+    reason is that when mu/n is small the whole run is O(n+m)-dominated, so
+    ANY extra O(n+m) pass is a constant fraction of the total.
 
-    `seed_allroots` controls whether the dense branch reuses gamma_0.  It is
-    free to compute, but it is NOT unconditionally a win: gamma_0 is the
-    lightest fundamental cycle of an arbitrary spanning forest and can be a
-    poor bound, in which case seeding makes the first searches truncate at a
-    large radius while an unseeded first search may stumble onto a near-optimal
-    gamma immediately and truncate harder thereafter.  Which effect dominates
-    is an empirical question; `campaign.py timing` measures both.
+    The fix uses the cyclomatic identity rather than a traversal.  Since
+    mu = m - n + c(G) and c(G) >= 1,
+
+        mu >= mu_lb := m - n + 1,
+
+    and mu_lb is available in O(1) from the sizes alone.  If mu_lb > theta*n
+    the graph is certainly above the switch point and the all-roots branch is
+    taken without ever walking the graph; otherwise the transversal branch is
+    taken, and it computes the forest it needs anyway.  So the decision adds
+    no traversal on either side.  On disconnected inputs the bound is
+    conservative (c(G) > 1 makes the true mu larger), which can route a graph
+    to the transversal branch when the exact statistic would not have; that
+    branch is exact regardless, so the cost is at most the transversal
+    overhead on a graph near the boundary, never a wrong answer.
+
+    `seed_allroots` controls whether the dense branch pays for gamma_0
+    separately.  gamma_0 is NOT unconditionally a win: it is the lightest
+    fundamental cycle of an arbitrary spanning forest and can be a poor bound,
+    in which case seeding makes the early searches truncate at a large radius
+    while an unseeded first search may stumble onto a near-optimal gamma
+    immediately and truncate harder thereafter.  Which effect dominates is an
+    empirical question; `campaign.py timing` measures both.
     """
     n = len(adj)
-    S, gamma0, cyc0, mu = _transversal_for(adj)
-    took_transversal = bool(S) and mu <= theta * n
+    m = sum(len(d) for d in adj.values()) // 2
+    mu_lb = m - n + 1                              # O(1); exact when connected
+    took_transversal = mu_lb <= theta * n
 
-    if not S:                      # forest: no cycle at all
+    if m < n:                      # certainly a forest: no cycle at all
         return MWCResult(length=INF, cycle=None, certified=True, mode="exact",
                          kappa=1.0,
-                         stats={"n": n, "mu": 0, "mu_over_n": 0.0, "branch": "forest",
+                         stats={"n": n, "m": m, "mu_lb": mu_lb, "branch": "forest",
                                 "theta": theta, "roots_run": 0, "total_settled": 0})
 
     if took_transversal:
@@ -170,10 +192,11 @@ def mwc_adaptive(
         stats.update(branch="transversal")
         length, cycle = res.length, res.cycle
     elif seed_allroots:
+        _, gamma0, cyc0, _ = _transversal_for(adj)
         res = mwc(adj, gamma0=gamma0, cycle0=cyc0, certify=certify,
                   collect_stats=collect_stats)
         stats = dict(res.stats)
-        stats.update(branch="allroots_seeded")
+        stats.update(branch="allroots_seeded", gamma0=gamma0)
         length, cycle = res.length, res.cycle
     else:
         res = mwc(adj, certify=certify, collect_stats=collect_stats)
@@ -181,8 +204,8 @@ def mwc_adaptive(
         stats.update(branch="allroots_unseeded")
         length, cycle = res.length, res.cycle
 
-    stats.update(n=n, mu=mu, mu_over_n=mu / n if n else 0.0, theta=theta,
-                 gamma0=gamma0)
+    stats.update(n=n, m=m, mu_lb=mu_lb, mu_lb_over_n=mu_lb / n if n else 0.0,
+                 theta=theta)
     return MWCResult(length=length, cycle=cycle, certified=certify, mode="exact",
                      kappa=1.0, stats=stats)
 
