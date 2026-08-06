@@ -72,10 +72,12 @@ def table_runtime(d, n_target=1600):
             f"{r['t_allroots']:.4f} & {r['t_transversal']:.4f} & "
             f"{r['t_adaptive']:.4f} & {rel:.2f}$\\times$ \\\\ \\hline".replace(",", "\\,"))
     out.append(r"""\end{tabular}
-\caption{Exact-mode runtime at $n=1600$, best of five runs, one core of an
-Intel Xeon Gold 6248, Python 3.12. ``Root cut'' is $1-|S|/n$. The final column
-is the adaptive variant against whichever \emph{fixed} strategy is better on
-that family, so a value near $1$ means the switch chose correctly.}
+\caption{Exact-mode runtime at $n=1600$: one instance per family, best of five
+runs, one core of an Intel Xeon Gold 6248, Python 3.12. ``Root cut'' is
+$1-|S|/n$. The final column is the adaptive variant against whichever
+\emph{fixed} strategy is better on that family, so a value near $1$ means the
+switch chose correctly. Because each row is a single instance, differences
+within a few percent of $1$ should be read as ties.}
 \label{tab:runtime}
 \end{table}""")
     return "\n".join(out)
