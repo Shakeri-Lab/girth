@@ -800,7 +800,21 @@ def _subgraph_from_edges(edges: Sequence[Tuple]) -> Dict[Any, Dict[Any, float]]:
 
 
 def spanning_forest(adj: Dict[Any, Dict[Any, float]]):
-    """BFS spanning forest.
+    """BFSForest(G; <_V, <_E) -- the forest routine Algorithm 1 fixes.
+
+    The traversal is fully determined by two orders, both taken from the
+    insertion order of the adjacency mapping: `<_V` decides which vertex starts
+    the next tree (`for s in adj`), and `<_E` decides the order neighbours are
+    expanded (`sorted(..., key=index)`). Nothing else breaks ties, so the forest
+    -- and therefore the seed gamma_0 and the transversal -- is a deterministic
+    function of the presented graph.
+
+    That determinism is load-bearing, not incidental. The upper bound of the
+    approximation theorem holds for any spanning forest, but the matching lower
+    bound cannot: for any cycle there is some spanning tree making it a
+    fundamental cycle, so a witness has to be built against a NAMED forest
+    routine. `tightness_witness.py` and `sharpness_witness.py` are built against
+    this one, and they assert `gamma_0 == 1` to catch any change here.
 
     Returns ``(tree_parent, tree_roots, non_tree_edges, order)`` where
     ``order`` is a BFS order of all vertices (roots first in each tree).
