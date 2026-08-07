@@ -18,8 +18,9 @@ summary below. No result in the paper is produced by them.
 | `gen.py` | graph generators used by the tests (networkx only for the graph atlas). |
 | `test_mwc.py` | 25 named regressions + differential tests. |
 | `transversal_study.py` | reproduces the root-count / settled-vertex reduction table. |
-| `alg1_exact_rational.py` | independent Algorithm-1 simulator in exact rational arithmetic. |
-| `tightness_13vertex.py` | the 13-vertex tightness witness generator. |
+| `alg1_exact_rational.py` | independent Algorithm-1 simulator in exact rational arithmetic; takes `gamma0` so it can model line 2. |
+| `tightness_witness.py` | the 14-vertex tightness witness, SEED-RESISTANT (see below), checked in both implementations. |
+| `sharpness_witness.py` | the witnesses for Proposition (Sharpness), parts (i) and (ii). |
 | `RESULTS.md` | measured validation campaign. |
 | `AUDIT_legacy_vs_oracle.txt` | differential audit of the legacy code paths. |
 
@@ -51,7 +52,8 @@ python make_tables.py --results results --out <manuscript>/tables
 ```bash
 python -m pytest test_mwc.py -q      # 25 passed
 python transversal_study.py          # root/settled reduction table
-python tightness_13vertex.py         # ratio -> kappa(alpha,beta)
+python tightness_witness.py          # ratio -> kappa(alpha,beta); asserts gamma_0 = 1
+python sharpness_witness.py          # radius 1/2 optimal; component-meeting root set fails
 ```
 
 Only `test_mwc.py` (graph atlas) and `gen.py` need `networkx`; `mwc.py` itself has no
@@ -99,10 +101,36 @@ a returned cycle shorter than the minimum.
 * Exact mode vs. the edge-removal oracle: **0 mismatches** over 1 725 random instances across
   12 families plus the complete graph atlas on <= 7 vertices (3 747 weighted instances x 3 runs).
 * Approximate mode: **0 violations** of `gamma* <= ghat <= kappa*gamma*` in > 640 000 runs.
-* Tightness: the 13-vertex witness drives `ghat/gamma*` to `kappa` at every admissible
-  `(alpha, beta)`, confirmed by two independent implementations.
+* Tightness: the 14-vertex witness drives `ghat/gamma*` to `kappa` at every admissible
+  `(alpha, beta)`, confirmed by two independent implementations, **with the seed of line 2
+  enabled** (`gamma_0 = 1`, asserted per configuration).
 * Cycle certification (reconstruct + re-sum) never fired a mismatch in the whole campaign.
 
-Note that the witness sits on a knife edge: `delta(v0)` equals the deletion threshold exactly,
-so a floating-point instantiation can lose the deletion by one ulp. Use the exact-rational
-simulator, or reduce `D` by an explicit slack.
+The knife edge is now removed rather than merely noted: `D` sits `eps/8` strictly inside the
+deletion threshold instead of exactly on it. The old placement was decided by an exact real
+equality that floating point need not reproduce — at `(alpha, beta) = (0.5, 0.1)` the
+threshold evaluates to 0.39749999999999996 against `delta(v0) = 0.3975`, `v0` survives, and
+the ratio collapses to 1.
+
+
+## A trap worth knowing about: the witnesses must survive the seed
+
+Line 2 of Algorithm 1 sets `gamma_0` to the smallest fundamental cycle of a
+spanning forest, before any root search. If the minimum weight cycle `c*` is a
+whole component, or is pendant (attached at one vertex), then `c*` minus any one
+edge is a path, so every spanning forest contains all but one edge of `c*` and
+the omitted edge closes `c*` itself. Then `gamma_0 = gamma*` exactly and the
+algorithm returns the optimum before the discard rule can do anything -- such a
+graph proves nothing about the approximation ratio.
+
+The earlier `tightness_13vertex.py` had exactly this shape. Measured on it at
+(alpha, beta, eps) = (0.3, 0, 1e-2): `gamma_0 = gamma* = 0.410000`, ratio 1.000
+against kappa = 2.5.
+
+`tightness_witness.py` and `sharpness_witness.py` therefore attach `c*` to a hub
+at two antipodal vertices by heavy edges and control the vertex presentation
+order, so the BFS forest enters `c*` from both sides and leaves two of its edges
+non-tree. Both scripts ASSERT `gamma_0 == 1` and fail loudly otherwise; keep that
+assertion if you modify them. Note also that no witness can defeat every spanning
+forest -- for any cycle there is some tree making it fundamental -- which is why
+the forest rule is fixed, exactly as the root order is.
