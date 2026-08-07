@@ -185,6 +185,24 @@ def main():
     print("All configurations: gamma_0 = 1, ghat = 1, exactly v0 deleted, "
           "both implementations agree, ratio <= kappa.")
 
+    out = os.environ.get("OUTDIR")
+    if out:
+        import json
+        rows = [check(a, b, e) for (a, b) in GRID for e in EPSILONS
+                if e < 2 * (min(a, 0.5) - b) - 1e-12]
+        payload = {"rows": rows, "grid": GRID, "epsilons": list(EPSILONS),
+                   "note": "seeded Algorithm 1; gamma_0 must be 1, not gamma*"}
+        try:                                   # reuse the campaign's provenance
+            from campaign import provenance
+            payload["provenance"] = provenance()
+        except Exception:
+            pass
+        os.makedirs(out, exist_ok=True)
+        path = os.path.join(out, "tightness.json")
+        with open(path, "w") as f:
+            json.dump(payload, f, indent=1, default=str)
+        print(f"[wrote] {path}")
+
 
 if __name__ == "__main__":
     main()
