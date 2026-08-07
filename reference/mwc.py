@@ -548,6 +548,8 @@ def mwc(
         d_to_cycle = INF
         l_best = INF
         best_local_cycle: Optional[Tuple] = None
+        best_triple: Optional[Tuple] = None        # witness of the record gamma
+        best_local_triple: Optional[Tuple] = None
         scans = 0
 
         for y in Q:
@@ -584,18 +586,37 @@ def mwc(
                         )
                     l_c = rec                      # use the certified value
 
-                if l_c < gamma:                    # line 21
+                if l_c < gamma:                    # lines 17-18
                     gamma = l_c
-                    if cyc is None:
-                        cyc = tuple(_fundamental_cycle(y, z, p, pred))
-                    best_cycle = cyc
-                if d_plus < d_plus_min:            # lines 22-23
+                    # Record the witness triple only.  Materializing the cycle
+                    # here would cost O(q_x) per improving candidate, i.e.
+                    # O(sigma_x q_x) per root in the worst case, which is not
+                    # what the complexity theorem charges; Algorithm 1
+                    # reconstructs once per root, after the scan.
+                    best_cycle = cyc               # None unless certifying
+                    best_triple = (y, z, p)
+                if d_plus < d_plus_min:            # lines 19-20
                     d_plus_min = d_plus
                     d_to_cycle = d_xc
                     l_best = l_c
                     best_local_cycle = cyc
+                    best_local_triple = (y, z, p)
 
-        # ---- discard sweep (lines 25-28) -----------------------------------
+        # ---- line 21-22: reconstruct ONCE per root, not per candidate ------
+        if best_triple is not None and best_cycle is None:
+            best_cycle = tuple(_fundamental_cycle(*best_triple, pred))
+            if certify:                            # audit mode already checked
+                if not is_simple_cycle(adj, best_cycle):
+                    raise CertificationError(
+                        f"reconstructed cycle is not simple: {best_cycle!r}")
+                if not _close(cycle_weight(adj, best_cycle), gamma, tol):
+                    raise CertificationError(
+                        f"cycle-length mismatch on the record holder: "
+                        f"{cycle_weight(adj, best_cycle)!r} vs {gamma!r}")
+        if best_local_cycle is None and best_local_triple is not None:
+            best_local_cycle = tuple(_fundamental_cycle(*best_local_triple, pred))
+
+        # ---- discard sweep (lines 23-25) -----------------------------------
         deletions: List[Any] = []
         threshold = None
         triggered = (
