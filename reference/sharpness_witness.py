@@ -35,6 +35,30 @@ def _add(adj, u, v, w):
     adj.setdefault(v, {})[u] = w
 
 
+def _is_cycle_transversal(adj, S):
+    """True iff every simple cycle of `adj` meets S.  Checked directly: delete S
+    and confirm what remains is a forest (m < n per component)."""
+    S = set(S)
+    rest = {u: {v: w for v, w in nb.items() if v not in S}
+            for u, nb in adj.items() if u not in S}
+    n = len(rest)
+    m = sum(len(nb) for nb in rest.values()) // 2
+    seen, comps = set(), 0
+    for s in rest:
+        if s in seen:
+            continue
+        comps += 1
+        stack = [s]
+        seen.add(s)
+        while stack:
+            u = stack.pop()
+            for v in rest[u]:
+                if v not in seen:
+                    seen.add(v)
+                    stack.append(v)
+    return m == n - comps                      # acyclic iff mu = 0
+
+
 def _seed_triangle(adj):
     """C_0: length exactly 1, its own component -- this is what pins gamma_0."""
     for i in range(3):
@@ -85,7 +109,13 @@ def report():
         for hub in (False, True):
             adj, order, gstar = build_radius(tau, hub=hub)
             _, g0, c0, _ = _transversal_for(adj)
-            res = mwc(adj, root_order=order, gamma0=g0, cycle0=c0,
+            # S must be a genuine CYCLE TRANSVERSAL, or the construction says
+            # nothing about the theorem it is meant to make sharp.  {s_0} u V(c*)
+            # meets C_0, c*, and (with the hub) every cycle through h; processing
+            # s_0 changes nothing because the seed already stands at 1.
+            S = ["c0_0"] + [f"v{i}" for i in range(4)]
+            assert _is_cycle_transversal(adj, S), "S is not a cycle transversal"
+            res = mwc(adj, root_order=order, roots=S, gamma0=g0, cycle0=c0,
                       radius_factor=tau, certify=True, collect_stats=False)
             strict = res.length > gstar + 1e-12
             if hub and not strict:

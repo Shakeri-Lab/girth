@@ -203,11 +203,11 @@ def mwc_adaptive(
     mu_lb = m - n + 1                              # O(1); exact when connected
     took_transversal = mu_lb <= theta * n
 
-    if m < n:                      # certainly a forest: no cycle at all
-        return MWCResult(length=INF, cycle=None, certified=True, mode="exact",
-                         kappa=1.0,
-                         stats={"n": n, "m": m, "mu_lb": mu_lb, "branch": "forest",
-                                "theta": theta, "roots_run": 0, "total_settled": 0})
+    # NB: do NOT short-circuit on m < n as "must be a forest".  That inference
+    # needs connectivity: a triangle plus isolated vertices has m < n and girth
+    # 3.  Acyclicity is mu = 0, not m < n, and mu is what we are deliberately
+    # not computing.  m < n gives mu_lb <= 0 <= theta*n, so such graphs take the
+    # transversal branch, which detects a forest correctly on its own.
 
     if took_transversal:
         # use_blocks=False on measured evidence.  The block reduction is
