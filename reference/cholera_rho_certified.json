@@ -1,0 +1,17 @@
+{
+ "modulus": 103.92710959053503,
+ "m_rho": 1.0,
+ "violation": 0.0,
+ "certified": true,
+ "qp_solves": 632,
+ "constraints": 632,
+ "total_time": 19.763956308364868,
+ "cycle_time": 14.664773225784302,
+ "qp_time": 2.635350227355957,
+ "candidate_calls": 632,
+ "oracle_calls": 385,
+ "iterations": 632,
+ "pri_res": 1.571155616478502e-16,
+ "dua_res": 6.280369834735101e-16,
+ "status": "certified"
+}
