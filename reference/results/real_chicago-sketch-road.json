@@ -1,0 +1,51 @@
+{
+ "rows": [
+  {
+   "name": "chicago-sketch-road",
+   "n": 933,
+   "m": 1475,
+   "mu": 543,
+   "mu_over_n": 0.582,
+   "weights_native": true,
+   "weight_semantics": "link length as distributed in the TNTP `length` column (MILES -- the in-file ORIGINAL HEADER reads 'length (miles)')",
+   "t_allroots": 0.011996235698461533,
+   "settled_allroots": 2792,
+   "roots_allroots": 933,
+   "t_transversal": 0.00938180461525917,
+   "settled_transversal": 519,
+   "roots_transversal": 372,
+   "t_adaptive": 0.007805553264915943,
+   "roots_adaptive": 383,
+   "adaptive_branch": "transversal",
+   "girth": 2.03239,
+   "certified_girth_matches": true
+  }
+ ],
+ "repeats": 5,
+ "data_dir": "/scratch/hs9hd/mwc_campaign_v2/realnets",
+ "provenance": {
+  "git_sha": "b7bb20c9ac1393ab43f12a18d47afce6f88dd142",
+  "git_dirty": [],
+  "host": "udc-aw33-7c1",
+  "cpu": "Intel(R) Xeon(R) Gold 6248 CPU @ 2.50GHz",
+  "python": "3.12.2",
+  "slurm_job_id": "18173096",
+  "slurm_array_task_id": "2",
+  "argv": [
+   "campaign.py",
+   "--out",
+   "/scratch/hs9hd/mwc_campaign_v2/results",
+   "--repeats",
+   "5",
+   "real",
+   "--data",
+   "/scratch/hs9hd/mwc_campaign_v2/realnets",
+   "--max-n",
+   "60000",
+   "--only",
+   "chicago-sketch-road",
+   "--tag",
+   "chicago-sketch-road"
+  ]
+ }
+}

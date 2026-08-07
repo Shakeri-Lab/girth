@@ -1,0 +1,51 @@
+{
+ "rows": [
+  {
+   "name": "osm-portland-drive",
+   "n": 20154,
+   "m": 30477,
+   "mu": 10324,
+   "mu_over_n": 0.512,
+   "weights_native": true,
+   "weight_semantics": "geodesic length of the road segment in METRES, as computed by osmnx from the OSM way geometry (the `length` edge attribute)",
+   "t_allroots": 0.28324615582823753,
+   "settled_allroots": 40997,
+   "roots_allroots": 20154,
+   "t_transversal": 0.39958295691758394,
+   "settled_transversal": 8921,
+   "roots_transversal": 8517,
+   "t_adaptive": 0.29530145786702633,
+   "roots_adaptive": 8636,
+   "adaptive_branch": "transversal",
+   "girth": 18.754432,
+   "certified_girth_matches": true
+  }
+ ],
+ "repeats": 5,
+ "data_dir": "/scratch/hs9hd/mwc_campaign_v2/realnets",
+ "provenance": {
+  "git_sha": "b7bb20c9ac1393ab43f12a18d47afce6f88dd142",
+  "git_dirty": [],
+  "host": "udc-aw33-3c0",
+  "cpu": "Intel(R) Xeon(R) Gold 6248 CPU @ 2.50GHz",
+  "python": "3.12.2",
+  "slurm_job_id": "18173089",
+  "slurm_array_task_id": "9",
+  "argv": [
+   "campaign.py",
+   "--out",
+   "/scratch/hs9hd/mwc_campaign_v2/results",
+   "--repeats",
+   "5",
+   "real",
+   "--data",
+   "/scratch/hs9hd/mwc_campaign_v2/realnets",
+   "--max-n",
+   "60000",
+   "--only",
+   "osm-portland-drive",
+   "--tag",
+   "osm-portland-drive"
+  ]
+ }
+}

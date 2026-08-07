@@ -1,0 +1,51 @@
+{
+ "rows": [
+  {
+   "name": "celegans-neural",
+   "n": 297,
+   "m": 2148,
+   "mu": 1852,
+   "mu_over_n": 6.236,
+   "weights_native": true,
+   "weight_semantics": "connection strength between two neurons, summed over both directions (positive integer). Newman's accompanying celegansneural.txt states only 'Edge weights are the weights given by Watts'; in the underlying White et al. (1986) wiring data this quantity is the number of synaptic connections / gap junctions between the neuron pair. We record the distributed value verbatim and did not re-derive it from White et al.",
+   "t_allroots": 0.026362362317740917,
+   "settled_allroots": 2251,
+   "roots_allroots": 297,
+   "t_transversal": 0.028339799027889967,
+   "settled_transversal": 1702,
+   "roots_transversal": 235,
+   "t_adaptive": 0.028124468866735697,
+   "roots_adaptive": 297,
+   "adaptive_branch": "allroots_unseeded",
+   "girth": 3.0,
+   "certified_girth_matches": true
+  }
+ ],
+ "repeats": 5,
+ "data_dir": "/scratch/hs9hd/mwc_campaign_v2/realnets",
+ "provenance": {
+  "git_sha": "b7bb20c9ac1393ab43f12a18d47afce6f88dd142",
+  "git_dirty": [],
+  "host": "udc-aw36-19c1",
+  "cpu": "Intel(R) Xeon(R) Gold 6248 CPU @ 2.50GHz",
+  "python": "3.12.2",
+  "slurm_job_id": "18173108",
+  "slurm_array_task_id": "1",
+  "argv": [
+   "campaign.py",
+   "--out",
+   "/scratch/hs9hd/mwc_campaign_v2/results",
+   "--repeats",
+   "5",
+   "real",
+   "--data",
+   "/scratch/hs9hd/mwc_campaign_v2/realnets",
+   "--max-n",
+   "60000",
+   "--only",
+   "celegans-neural",
+   "--tag",
+   "celegans-neural"
+  ]
+ }
+}

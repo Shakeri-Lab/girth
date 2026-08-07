@@ -1,0 +1,51 @@
+{
+ "rows": [
+  {
+   "name": "openflights-air",
+   "n": 3188,
+   "m": 18833,
+   "mu": 15646,
+   "mu_over_n": 4.908,
+   "weights_native": false,
+   "weight_semantics": "great-circle (haversine) distance in kilometres between the two airports' published latitude/longitude, mean Earth radius R = 6371.0088 km",
+   "t_allroots": 0.09074725396931171,
+   "settled_allroots": 6401,
+   "roots_allroots": 3188,
+   "t_transversal": 0.12501112185418606,
+   "settled_transversal": 1527,
+   "roots_transversal": 1480,
+   "t_adaptive": 0.08805485907942057,
+   "roots_adaptive": 3188,
+   "adaptive_branch": "allroots_unseeded",
+   "girth": 32.741569,
+   "certified_girth_matches": true
+  }
+ ],
+ "repeats": 5,
+ "data_dir": "/scratch/hs9hd/mwc_campaign_v2/realnets",
+ "provenance": {
+  "git_sha": "b7bb20c9ac1393ab43f12a18d47afce6f88dd142",
+  "git_dirty": [],
+  "host": "udc-aw36-15c0",
+  "cpu": "Intel(R) Xeon(R) Gold 6248 CPU @ 2.50GHz",
+  "python": "3.12.2",
+  "slurm_job_id": "18173098",
+  "slurm_array_task_id": "4",
+  "argv": [
+   "campaign.py",
+   "--out",
+   "/scratch/hs9hd/mwc_campaign_v2/results",
+   "--repeats",
+   "5",
+   "real",
+   "--data",
+   "/scratch/hs9hd/mwc_campaign_v2/realnets",
+   "--max-n",
+   "60000",
+   "--only",
+   "openflights-air",
+   "--tag",
+   "openflights-air"
+  ]
+ }
+}

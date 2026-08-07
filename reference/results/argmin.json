@@ -1,0 +1,168 @@
+{
+ "rows": [
+  {
+   "d": 4,
+   "n": 16,
+   "m": 24,
+   "girth": 6.313,
+   "argmin_oracle": 384,
+   "argmin_allroots": 77,
+   "argmin_transversal": 46,
+   "argmin_adaptive": 40,
+   "adaptive_branch": "transversal"
+  },
+  {
+   "d": 5,
+   "n": 25,
+   "m": 40,
+   "girth": 6.094,
+   "argmin_oracle": 1000,
+   "argmin_allroots": 131,
+   "argmin_transversal": 93,
+   "argmin_adaptive": 66,
+   "adaptive_branch": "transversal"
+  },
+  {
+   "d": 6,
+   "n": 36,
+   "m": 60,
+   "girth": 6.436,
+   "argmin_oracle": 2160,
+   "argmin_allroots": 196,
+   "argmin_transversal": 113,
+   "argmin_adaptive": 146,
+   "adaptive_branch": "transversal"
+  },
+  {
+   "d": 7,
+   "n": 49,
+   "m": 84,
+   "girth": 7.073,
+   "argmin_oracle": 4116,
+   "argmin_allroots": 268,
+   "argmin_transversal": 161,
+   "argmin_adaptive": 210,
+   "adaptive_branch": "transversal"
+  },
+  {
+   "d": 8,
+   "n": 64,
+   "m": 112,
+   "girth": 4.249,
+   "argmin_oracle": 7168,
+   "argmin_allroots": 255,
+   "argmin_transversal": 196,
+   "argmin_adaptive": 151,
+   "adaptive_branch": "transversal"
+  },
+  {
+   "d": 9,
+   "n": 81,
+   "m": 144,
+   "girth": 5.595,
+   "argmin_oracle": 11664,
+   "argmin_allroots": 330,
+   "argmin_transversal": 226,
+   "argmin_adaptive": 222,
+   "adaptive_branch": "transversal"
+  },
+  {
+   "d": 10,
+   "n": 100,
+   "m": 180,
+   "girth": 5.546,
+   "argmin_oracle": 18000,
+   "argmin_allroots": 451,
+   "argmin_transversal": 333,
+   "argmin_adaptive": 451,
+   "adaptive_branch": "allroots_unseeded"
+  },
+  {
+   "d": 12,
+   "n": 144,
+   "m": 264,
+   "girth": 3.773,
+   "argmin_oracle": 38016,
+   "argmin_allroots": 507,
+   "argmin_transversal": 481,
+   "argmin_adaptive": 507,
+   "adaptive_branch": "allroots_unseeded"
+  },
+  {
+   "d": 14,
+   "n": 196,
+   "m": 364,
+   "girth": 4.01,
+   "argmin_oracle": 71344,
+   "argmin_allroots": 653,
+   "argmin_transversal": 464,
+   "argmin_adaptive": 653,
+   "adaptive_branch": "allroots_unseeded"
+  },
+  {
+   "d": 16,
+   "n": 256,
+   "m": 480,
+   "girth": 5.375,
+   "argmin_oracle": 122880,
+   "argmin_allroots": 1177,
+   "argmin_transversal": 846,
+   "argmin_adaptive": 1177,
+   "adaptive_branch": "allroots_unseeded"
+  },
+  {
+   "d": 18,
+   "n": 324,
+   "m": 612,
+   "girth": 3.572,
+   "argmin_oracle": 198288,
+   "argmin_allroots": 1125,
+   "argmin_transversal": 777,
+   "argmin_adaptive": 1125,
+   "adaptive_branch": "allroots_unseeded"
+  },
+  {
+   "d": 20,
+   "n": 400,
+   "m": 760,
+   "girth": 4.488,
+   "argmin_oracle": 304000,
+   "argmin_allroots": 1605,
+   "argmin_transversal": 1204,
+   "argmin_adaptive": 1605,
+   "adaptive_branch": "allroots_unseeded"
+  }
+ ],
+ "seed": 20260806,
+ "protocol": "Plain Dijkstra returning (dist_to_all, #extract-min operations).\n\n    COUNTING PROTOCOL (stated so the figure caption can state it): one\n    argmin operation is counted per vertex REMOVED from the heap and settled,\n    i.e. per successful extract-min; stale heap entries popped and discarded\n    are not counted.  This is the same quantity as `total_settled` in the\n    reference implementation's stats, so the two curves are commensurable.",
+ "provenance": {
+  "git_sha": "b7bb20c9ac1393ab43f12a18d47afce6f88dd142",
+  "git_dirty": [],
+  "host": "udc-aw36-19c1",
+  "cpu": "Intel(R) Xeon(R) Gold 6248 CPU @ 2.50GHz",
+  "python": "3.12.2",
+  "slurm_job_id": "18173088",
+  "slurm_array_task_id": "4",
+  "argv": [
+   "campaign.py",
+   "--out",
+   "/scratch/hs9hd/mwc_campaign_v2/results",
+   "--repeats",
+   "1",
+   "argmin",
+   "--dims",
+   "4",
+   "5",
+   "6",
+   "7",
+   "8",
+   "9",
+   "10",
+   "12",
+   "14",
+   "16",
+   "18",
+   "20"
+  ]
+ }
+}

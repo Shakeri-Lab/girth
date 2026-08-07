@@ -1,0 +1,51 @@
+{
+ "rows": [
+  {
+   "name": "uspowergrid-synth",
+   "n": 4941,
+   "m": 6594,
+   "mu": 1654,
+   "mu_over_n": 0.335,
+   "weights_native": false,
+   "weight_semantics": "SYNTHETIC. The source graph is topological only (a transmission line either exists or does not); no line length, impedance or capacity is distributed with it.",
+   "t_allroots": 0.06257639100022061,
+   "settled_allroots": 13086,
+   "roots_allroots": 4941,
+   "t_transversal": 0.04945184200005315,
+   "settled_transversal": 2336,
+   "roots_transversal": 1252,
+   "t_adaptive": 0.03790379100018981,
+   "roots_adaptive": 1228,
+   "adaptive_branch": "transversal",
+   "girth": 379.0,
+   "certified_girth_matches": true
+  }
+ ],
+ "repeats": 5,
+ "data_dir": "/scratch/hs9hd/mwc_campaign_v2/realnets",
+ "provenance": {
+  "git_sha": "b7bb20c9ac1393ab43f12a18d47afce6f88dd142",
+  "git_dirty": [],
+  "host": "udc-aw34-22c1",
+  "cpu": "Intel(R) Xeon(R) Gold 6248 CPU @ 2.50GHz",
+  "python": "3.12.2",
+  "slurm_job_id": "18173113",
+  "slurm_array_task_id": "6",
+  "argv": [
+   "campaign.py",
+   "--out",
+   "/scratch/hs9hd/mwc_campaign_v2/results",
+   "--repeats",
+   "5",
+   "real",
+   "--data",
+   "/scratch/hs9hd/mwc_campaign_v2/realnets",
+   "--max-n",
+   "60000",
+   "--only",
+   "uspowergrid-synth",
+   "--tag",
+   "uspowergrid-synth"
+  ]
+ }
+}

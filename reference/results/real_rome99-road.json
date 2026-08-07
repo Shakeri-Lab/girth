@@ -1,0 +1,51 @@
+{
+ "rows": [
+  {
+   "name": "rome99-road",
+   "n": 3353,
+   "m": 4831,
+   "mu": 1479,
+   "mu_over_n": 0.441,
+   "weights_native": true,
+   "weight_semantics": "physical road distance in METRES (stated verbatim in the file header: 'Edge costs are physical distances in meters')",
+   "t_allroots": 0.03281584568321705,
+   "settled_allroots": 6717,
+   "roots_allroots": 3353,
+   "t_transversal": 0.0343248937278986,
+   "settled_transversal": 1268,
+   "roots_transversal": 1257,
+   "t_adaptive": 0.02629394829273224,
+   "roots_adaptive": 1253,
+   "adaptive_branch": "transversal",
+   "girth": 6.0,
+   "certified_girth_matches": true
+  }
+ ],
+ "repeats": 5,
+ "data_dir": "/scratch/hs9hd/mwc_campaign_v2/realnets",
+ "provenance": {
+  "git_sha": "b7bb20c9ac1393ab43f12a18d47afce6f88dd142",
+  "git_dirty": [],
+  "host": "udc-aw36-15c0",
+  "cpu": "Intel(R) Xeon(R) Gold 6248 CPU @ 2.50GHz",
+  "python": "3.12.2",
+  "slurm_job_id": "18173099",
+  "slurm_array_task_id": "5",
+  "argv": [
+   "campaign.py",
+   "--out",
+   "/scratch/hs9hd/mwc_campaign_v2/results",
+   "--repeats",
+   "5",
+   "real",
+   "--data",
+   "/scratch/hs9hd/mwc_campaign_v2/realnets",
+   "--max-n",
+   "60000",
+   "--only",
+   "rome99-road",
+   "--tag",
+   "rome99-road"
+  ]
+ }
+}

@@ -1,0 +1,51 @@
+{
+ "rows": [
+  {
+   "name": "sydney-road",
+   "n": 32956,
+   "m": 38787,
+   "mu": 5832,
+   "mu_over_n": 0.177,
+   "weights_native": true,
+   "weight_semantics": "link length as distributed in the TNTP `length` column (KILOMETRES -- the in-file ORIGINAL HEADER reads 'length (km)')",
+   "t_allroots": 0.43154814187437296,
+   "settled_allroots": 73228,
+   "roots_allroots": 32956,
+   "t_transversal": 0.4954958870075643,
+   "settled_transversal": 6874,
+   "roots_transversal": 5508,
+   "t_adaptive": 0.36533217318356037,
+   "roots_adaptive": 5452,
+   "adaptive_branch": "transversal",
+   "girth": 0.053,
+   "certified_girth_matches": true
+  }
+ ],
+ "repeats": 5,
+ "data_dir": "/scratch/hs9hd/mwc_campaign_v2/realnets",
+ "provenance": {
+  "git_sha": "b7bb20c9ac1393ab43f12a18d47afce6f88dd142",
+  "git_dirty": [],
+  "host": "udc-aw36-16c1",
+  "cpu": "Intel(R) Xeon(R) Gold 6248 CPU @ 2.50GHz",
+  "python": "3.12.2",
+  "slurm_job_id": "18173102",
+  "slurm_array_task_id": "8",
+  "argv": [
+   "campaign.py",
+   "--out",
+   "/scratch/hs9hd/mwc_campaign_v2/results",
+   "--repeats",
+   "5",
+   "real",
+   "--data",
+   "/scratch/hs9hd/mwc_campaign_v2/realnets",
+   "--max-n",
+   "60000",
+   "--only",
+   "sydney-road",
+   "--tag",
+   "sydney-road"
+  ]
+ }
+}
