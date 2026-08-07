@@ -40,8 +40,16 @@ def lca(pred, root, a, b):
     return root
 
 
-def run_alg1(adj, order, alpha, beta, trace=False, tol=1e-12):
-    gamma = INF
+def run_alg1(adj, order, alpha, beta, trace=False, tol=1e-12, gamma0=INF):
+    """``gamma0`` models line 2 of Algorithm 1, which seeds gamma with the
+    smallest fundamental cycle of a spanning forest BEFORE the root loop begins.
+    Leaving it at INF simulates the unseeded configuration.
+
+    The distinction is not cosmetic: a witness whose minimum weight cycle is a
+    fundamental cycle of that forest is handed the optimum by the seed and
+    proves nothing about the approximation ratio.
+    """
+    gamma = gamma0
     active = set(adj.keys())
     processed = set()
     log = []
