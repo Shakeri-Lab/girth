@@ -1,3 +1,30 @@
+> ## ⚠️ Read this before using anything in this directory
+>
+> **The code at the top level of this repository is superseded and partly
+> incorrect. It is not the implementation described in the paper.**
+>
+> The algorithm analysed in
+> *Minimum Weight Cycles via Composite Distance: Safe Truncation,
+> Cycle-Transversal Roots, and a Tight Pruning Bound*
+> lives in **[`reference/`](../../tree/mwc-paper-v1/reference)** on the
+> **`fix/exact-mwc-reference-implementation`** branch, released as
+> **[`mwc-paper-v1`](../../releases/tag/mwc-paper-v1)**.
+>
+> Measured against an exact edge-removal oracle on random graphs with at most
+> nine vertices, the exact entry point at the top level of this repository
+> disagreed on **5.5%** of instances, and two of its experimental back-ends
+> disagreed on **91.5%** and **69.5%**. One of them returned, as its "cycle", an
+> edge set that was not a cycle at all in 94 of 94 cases tested. No number in the
+> paper comes from this code; the defects and their repairs are documented in the
+> paper's appendix and in `reference/AUDIT_legacy_vs_oracle.txt`.
+>
+> To reproduce the paper:
+>
+> ```bash
+> git clone -b fix/exact-mwc-reference-implementation https://github.com/Shakeri-Lab/girth.git
+> cd girth/reference && ./reproduce.sh
+> ```
+
 # Shortest Cycle Algorithm
 
 This project implements an efficient algorithm for finding the shortest cycle in an undirected graph with non-negative edge weights. The algorithm leverages advanced optimization techniques including Lowest Common Ancestor (LCA) trees with binary lifting, priority queues, aggressive pruning, and smart caching.
