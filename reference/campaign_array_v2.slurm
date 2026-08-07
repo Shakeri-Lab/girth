@@ -35,10 +35,10 @@ echo "----------------------------------------------------------------------"
 case "${SLURM_ARRAY_TASK_ID}" in
   0)  # Table 5 rerun + the adaptive column, same protocol as bench_timing.py
       python3 campaign.py --out "$OUT" --repeats 5 timing \
-              --sizes 400 900 1600 --oracle-max-m 1200 ;;
+              --sizes 1600 --instances 24 --oracle-max-m 1200 ;;
   1)  # A0-A7: what each acceleration actually buys
-      python3 campaign.py --out "$OUT" --repeats 5 ablation \
-              --sizes 400 900 1600 --a0-max-m 20000 ;;
+      python3 campaign.py --out "$OUT" --repeats 3 ablation \
+              --sizes 1600 --instances 8 --a0-max-m 20000 ;;
   2)  # crossover sweep: fit theta from data rather than assume it
       python3 campaign.py --out "$OUT" --repeats 5 theta \
               --sizes 800 1600 --instances 3 \

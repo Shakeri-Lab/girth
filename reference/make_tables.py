@@ -48,7 +48,60 @@ def prov_comment(d, fname):
 
 
 # ------------------------------------------------------------------ runtime
+def _iqr(xs):
+    """Median and interquartile range, on the nearest-rank convention."""
+    xs = sorted(xs)
+    n = len(xs)
+    if n == 1:
+        return xs[0], xs[0], xs[0]
+    med = st.median(xs)
+    lo = xs[max(0, int(round(0.25 * (n - 1))))]
+    hi = xs[min(n - 1, int(round(0.75 * (n - 1))))]
+    return med, lo, hi
+
+
+def table_runtime_spread(d, n_target=1600):
+    """Median and IQR over independent draws per family."""
+    by = defaultdict(list)
+    for r in d["rows"]:
+        if r["n"] == n_target:
+            by[r["family"]].append(r)
+    order = ["near_tree", "sparse_er", "small_world", "grid", "geometric", "dense_er"]
+    fams = sorted(by, key=lambda f: order.index(f) if f in order else 99)
+    n_inst = max(len(v) for v in by.values())
+    out = [prov_comment(d, "timing.json")]
+    out.append(r"""\begin{table}[ht]
+\centering
+\small
+\begin{tabular}{|l|r|r|r|r|r|}
+\hline
+\textbf{Family} & $\mu/n$ & \textbf{all roots (s)} & \textbf{transversal (s)} & \textbf{adaptive (s)} & \textbf{adaptive vs.\ best fixed} \\ \hline""")
+    for f in fams:
+        rs = by[f]
+        mu = st.median(r["mu_over_n"] for r in rs)
+        cells = []
+        for key in ("t_allroots", "t_transversal", "t_adaptive"):
+            med, lo, hi = _iqr([r[key] for r in rs])
+            cells.append(f"{med:.4f} \\tiny[{lo:.4f},{hi:.4f}]")
+        rel = _iqr([min(r["t_allroots"], r["t_transversal"]) / r["t_adaptive"]
+                    for r in rs])
+        out.append(f"{FAMILY_LABEL.get(f, f):<14} & {mu:.3f} & " + " & ".join(cells) +
+                   f" & {rel[0]:.2f}$\\times$ \\tiny[{rel[1]:.2f},{rel[2]:.2f}] \\\\ \\hline")
+    out.append(r"""\end{tabular}
+\caption{Exact-mode runtime at $n=""" + f"{n_target}" + r"""$ over $""" + f"{n_inst}" +
+        r"""$ independent draws per family: median, with the interquartile range in
+brackets. Best of five timed runs per draw, one core of an Intel Xeon Gold 6248,
+Python 3.12. The final column compares the adaptive variant against whichever
+\emph{fixed} strategy is better on that draw, so a value near $1$ means the
+switch chose correctly and a spread straddling $1$ means the two are tied.}
+\label{tab:runtime}
+\end{table}""")
+    return "\n".join(out)
+
+
 def table_runtime(d, n_target=1600):
+    if d.get("instances", 1) > 1:
+        return table_runtime_spread(d, n_target)
     rows = [r for r in d["rows"] if r["n"] == n_target]
     order = ["near_tree", "sparse_er", "small_world", "grid", "geometric", "dense_er"]
     rows.sort(key=lambda r: order.index(r["family"]) if r["family"] in order else 99)
@@ -116,6 +169,44 @@ configurations of Table~\ref{tab:runtime}. A dash marks a configuration not
 run (A0 is capped by edge count). Every rung returns the same girth on every
 instance.}
 \label{tab:ablation}
+\end{table}""")
+    return "\n".join(out)
+
+
+def table_ablation_time(d, n_target=1600):
+    """Wall clock per rung -- the ablation chain as a timing result, so the
+    practical claim does not rest on the edge-removal comparison alone."""
+    by = defaultdict(lambda: defaultdict(list))
+    for r in d["rows"]:
+        if r.get("n") == n_target and "t" in r:
+            by[r["variant"]][r["family"]].append(r["t"] * 1e3)
+    fams = ["near_tree", "sparse_er", "grid", "small_world", "geometric", "dense_er"]
+    fams = [f for f in fams if any(f in by[v] for v in by)]
+    out = [prov_comment(d, "ablation.json")]
+    out.append(r"""\begin{table}[ht]
+\centering
+\small
+\begin{tabular}{|l|l|""" + "r|" * len(fams) + r"""}
+\hline
+ & \textbf{acceleration added} & \multicolumn{""" + str(len(fams)) +
+        r"""}{c|}{\textbf{median wall clock (ms)}} \\ \cline{3-""" + str(2 + len(fams)) + r"""}
+ & & """ + " & ".join(FAMILY_LABEL.get(f, f) for f in fams) + r""" \\ \hline""")
+    for v in ["A0", "A1", "A2", "A3", "A4", "A5", "A6", "A7"]:
+        if v not in by:
+            continue
+        cells = []
+        for f in fams:
+            xs = by[v].get(f)
+            cells.append(f"{st.median(xs):,.1f}".replace(",", "\\,") if xs else "---")
+        out.append(f"{v} & {ABLATION_TEX[v]} & " + " & ".join(cells) + r" \\ \hline")
+    out.append(r"""\end{tabular}
+\caption{The ablation of Table~\ref{tab:ablation} as wall clock rather than
+operation counts, at $n=""" + f"{n_target}" + r"""$, median over the same draws.
+A1 is the $n$-root baseline with truncation and A7 the configuration we
+recommend; reading down a column shows what each acceleration is worth in time
+on that family, which is the comparison the $40$--$70\times$ edge-removal figure
+does not make. A dash marks a configuration not run.}
+\label{tab:ablation_time}
 \end{table}""")
     return "\n".join(out)
 
@@ -212,6 +303,7 @@ def main():
 
     jobs = [("timing.json", table_runtime, "table_runtime.tex"),
             ("ablation.json", table_ablation, "table_ablation.tex"),
+            ("ablation.json", table_ablation_time, "table_ablation_time.tex"),
             ("frontier.json", table_frontier, "table_frontier.tex")]
     for fname, fn, outname in jobs:
         d = load(args.results, fname)

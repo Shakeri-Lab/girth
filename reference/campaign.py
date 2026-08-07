@@ -181,64 +181,71 @@ def cmd_timing(args):
     rng = random.Random(args.seed)
     rows = []
     for n in args.sizes:
+      # Several independent draws per family: a single instance cannot
+      # distinguish an algorithmic difference from graph-to-graph variation,
+      # and the aggregated table reports median and interquartile range.
+      for inst in range(args.instances):
         for name, G in bench_families(n, rng):
-            adj = to_adj(G)
-            nn, m = G.number_of_nodes(), G.number_of_edges()
-            mu = m - nn + nx.number_connected_components(G)
-            rec = dict(family=name, n=nn, m=m, mu=mu, mu_over_n=round(mu / nn, 3))
+              adj = to_adj(G)
+              nn, m = G.number_of_nodes(), G.number_of_edges()
+              mu = m - nn + nx.number_connected_components(G)
+              rec = dict(family=name, instance=inst, n=nn, m=m, mu=mu,
+                               mu_over_n=round(mu / nn, 3))
 
-            ref = None
-            if m <= args.oracle_max_m:
-                t, (g_or, _) = timeit(lambda: mwc_oracle(adj), 1)
-                rec["t_oracle"], ref = t, g_or
-            else:
-                rec["t_oracle"] = None
+              ref = None
+              if m <= args.oracle_max_m:
+                  t, (g_or, _) = timeit(lambda: mwc_oracle(adj), 1)
+                  rec["t_oracle"], ref = t, g_or
+              else:
+                  rec["t_oracle"] = None
 
-            t, r_all = timeit(lambda: mwc(adj, certify=False, collect_stats=True),
-                              args.repeats)
-            rec.update(t_allroots=t, settled_allroots=r_all.stats["total_settled"],
-                       roots_allroots=r_all.stats["roots_run"])
+              t, r_all = timeit(lambda: mwc(adj, certify=False, collect_stats=True),
+                                args.repeats)
+              rec.update(t_allroots=t, settled_allroots=r_all.stats["total_settled"],
+                         roots_allroots=r_all.stats["roots_run"])
 
-            t, r_tv = timeit(lambda: mwc_transversal(adj, certify=False,
+              t, r_tv = timeit(lambda: mwc_transversal(adj, certify=False,
+                                                       collect_stats=True), args.repeats)
+              rec.update(t_transversal=t, settled_transversal=r_tv.stats["total_settled"],
+                         roots_transversal=r_tv.stats["roots_run"])
+
+              t, r_ad = timeit(lambda: mwc_adaptive(adj, theta=args.theta, certify=False,
+                                                    collect_stats=True), args.repeats)
+              rec.update(t_adaptive=t, settled_adaptive=r_ad.stats.get("total_settled"),
+                         roots_adaptive=r_ad.stats.get("roots_run"),
+                         adaptive_branch=r_ad.stats.get("branch"))
+
+              # same switch, dense branch unseeded: isolates what gamma_0 buys
+              t, r_ad0 = timeit(lambda: mwc_adaptive(adj, theta=args.theta,
+                                                     seed_allroots=False, certify=False,
                                                      collect_stats=True), args.repeats)
-            rec.update(t_transversal=t, settled_transversal=r_tv.stats["total_settled"],
-                       roots_transversal=r_tv.stats["roots_run"])
+              rec.update(t_adaptive_noseed=t,
+                         settled_adaptive_noseed=r_ad0.stats.get("total_settled"),
+                         adaptive_branch_noseed=r_ad0.stats.get("branch"))
 
-            t, r_ad = timeit(lambda: mwc_adaptive(adj, theta=args.theta, certify=False,
-                                                  collect_stats=True), args.repeats)
-            rec.update(t_adaptive=t, settled_adaptive=r_ad.stats.get("total_settled"),
-                       roots_adaptive=r_ad.stats.get("roots_run"),
-                       adaptive_branch=r_ad.stats.get("branch"))
+              t, _ = timeit(lambda: mwc(adj, certify=True, collect_stats=False),
+                            args.repeats)
+              rec["t_allroots_certified"] = t
 
-            # same switch, dense branch unseeded: isolates what gamma_0 buys
-            t, r_ad0 = timeit(lambda: mwc_adaptive(adj, theta=args.theta,
-                                                   seed_allroots=False, certify=False,
-                                                   collect_stats=True), args.repeats)
-            rec.update(t_adaptive_noseed=t,
-                       settled_adaptive_noseed=r_ad0.stats.get("total_settled"),
-                       adaptive_branch_noseed=r_ad0.stats.get("branch"))
-
-            t, _ = timeit(lambda: mwc(adj, certify=True, collect_stats=False),
-                          args.repeats)
-            rec["t_allroots_certified"] = t
-
-            vals = [girth_of(r_all), girth_of(r_tv), girth_of(r_ad),
-                    girth_of(r_ad0)] + ([ref] if ref is not None else [])
-            if not agree(vals):
-                print(f"DISAGREEMENT {name} n={nn}: {vals}", flush=True)
-                sys.exit(1)
-            rec["girth"] = None if girth_of(r_all) == INF else round(girth_of(r_all), 6)
-            rows.append(rec)
-            print(json.dumps(rec), flush=True)
+              vals = [girth_of(r_all), girth_of(r_tv), girth_of(r_ad),
+                      girth_of(r_ad0)] + ([ref] if ref is not None else [])
+              if not agree(vals):
+                  print(f"DISAGREEMENT {name} n={nn}: {vals}", flush=True)
+                  sys.exit(1)
+              rec["girth"] = None if girth_of(r_all) == INF else round(girth_of(r_all), 6)
+              rows.append(rec)
+              print(json.dumps(rec), flush=True)
     emit(args.out, "timing.json", {"rows": rows, "theta": args.theta,
-                                   "repeats": args.repeats, "seed": args.seed})
+                                   "repeats": args.repeats, "seed": args.seed,
+                                   "instances": args.instances})
 
 
 # ----------------------------------------------------------------- ablation
 def cmd_ablation(args):
     rng = random.Random(args.seed)
     rows = []
-    for n in args.sizes:
+    plan = [(n, inst) for n in args.sizes for inst in range(args.instances)]
+    for n, inst in plan:
         for name, G in bench_families(n, rng):
             adj = to_adj(G)
             nn, m = G.number_of_nodes(), G.number_of_edges()
@@ -249,7 +256,8 @@ def cmd_ablation(args):
                 # is skipped above a size cap and the omission is recorded
                 # explicitly rather than silently.
                 if variant == "A0" and m > args.a0_max_m:
-                    rows.append(dict(family=name, n=nn, m=m, mu_over_n=round(mu / nn, 3),
+                    rows.append(dict(family=name, instance=inst, n=nn, m=m,
+                                     mu_over_n=round(mu / nn, 3),
                                      variant=variant, skipped="m > a0_max_m"))
                     continue
                 t, (length, cyc, st) = timeit(
@@ -262,7 +270,7 @@ def cmd_ablation(args):
                     print(f"DISAGREEMENT {name} n={nn} {variant}: {length} vs {ref}",
                           flush=True)
                     sys.exit(1)
-                rows.append(dict(family=name, n=nn, m=m, mu=mu,
+                rows.append(dict(family=name, instance=inst, n=nn, m=m, mu=mu,
                                  mu_over_n=round(mu / nn, 3), variant=variant,
                                  label=ABLATION_LABELS[variant], t=t,
                                  roots_run=st.get("roots_run"),
@@ -271,7 +279,8 @@ def cmd_ablation(args):
                                  girth=None if length == INF else round(length, 6)))
                 print(json.dumps(rows[-1]), flush=True)
     emit(args.out, "ablation.json", {"rows": rows, "labels": ABLATION_LABELS,
-                                     "repeats": args.repeats, "seed": args.seed})
+                                     "repeats": args.repeats, "seed": args.seed,
+                                     "instances": args.instances})
 
 
 # -------------------------------------------------------------------- theta
@@ -506,6 +515,9 @@ def main():
     t = sub.add_parser("timing")
     t.add_argument("--sizes", type=int, nargs="+", default=[400, 900, 1600])
     t.add_argument("--oracle-max-m", type=int, default=1200)
+    t.add_argument("--instances", type=int, default=1,
+                   help="independent draws per family; >1 makes the table report "
+                        "median and interquartile range instead of a single run")
     t.set_defaults(func=cmd_timing)
 
     a = sub.add_parser("ablation")
@@ -513,6 +525,7 @@ def main():
     a.add_argument("--variants", nargs="+",
                    default=["A0", "A1", "A2", "A3", "A4", "A5", "A6", "A7"])
     a.add_argument("--a0-max-m", type=int, default=20000)
+    a.add_argument("--instances", type=int, default=1)
     a.set_defaults(func=cmd_ablation)
 
     th = sub.add_parser("theta")
