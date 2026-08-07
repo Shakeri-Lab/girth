@@ -49,7 +49,7 @@ import sys
 _HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, _HERE)
 
-from alg1_exact_rational import run_alg1, true_girth  # noqa: E402
+from alg1_simulator import run_alg1, true_girth  # noqa: E402
 from mwc import INF, _transversal_for, kappa_of, mwc, mwc_oracle  # noqa: E402
 
 W_HEAVY = 1.0          # hub attachment weight; any W >= 1/2 works
@@ -144,8 +144,13 @@ def check(alpha, beta, eps, hub=True, **kw):
                 agree=abs(res.length - ghat_sim) <= 1e-9)
 
 
+# Every pair here must satisfy Algorithm 1's requirement alpha < beta + 1/2;
+# the boundary alpha = beta + 1/2 (where kappa = infinity) is outside the
+# algorithm's admissible range and is argued analytically in the text, not
+# measured here.  (0.90, 0.45) is the near-boundary case: kappa = 1/0.9.
 GRID = [(0.10, 0.00), (0.25, 0.00), (0.30, 0.00), (0.40, 0.00),
-        (0.45, 0.20), (0.50, 0.10), (0.55, 0.10), (0.60, 0.15), (0.70, 0.25)]
+        (0.45, 0.20), (0.50, 0.10), (0.55, 0.10), (0.60, 0.15), (0.70, 0.25),
+        (0.90, 0.45)]
 EPSILONS = (1e-2, 2e-3, 5e-4, 1e-4)
 
 

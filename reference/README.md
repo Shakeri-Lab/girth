@@ -18,7 +18,7 @@ summary below. No result in the paper is produced by them.
 | `gen.py` | graph generators used by the tests (networkx only for the graph atlas). |
 | `test_mwc.py` | 25 named regressions + differential tests. |
 | `transversal_study.py` | reproduces the root-count / settled-vertex reduction table. |
-| `alg1_exact_rational.py` | independent Algorithm-1 simulator in exact rational arithmetic; takes `gamma0` so it can model line 2. |
+| `alg1_simulator.py` | independent Algorithm-1 simulator written from the pseudocode, using the live-gamma radius variant as a cross-check of the frozen-radius reference; IEEE doubles with a 1e-12 comparison tolerance, so the witness supplies an explicit slack rather than relying on exact arithmetic. Takes `gamma0` so it can model line 2. |
 | `tightness_witness.py` | the 14-vertex tightness witness, SEED-RESISTANT (see below), checked in both implementations. |
 | `sharpness_witness.py` | the witnesses for Proposition (Sharpness), parts (i) and (ii). |
 | `RESULTS.md` | measured validation campaign. |

@@ -28,7 +28,7 @@ echo "commit: $(git rev-parse HEAD 2>/dev/null || echo 'not a git checkout')"
 if [ -n "$(git status --porcelain 2>/dev/null)" ]; then
   echo "WARNING: working tree is dirty; results will be stamped accordingly"
 fi
-mkdir -p "$OUT" "$TABLES"
+mkdir -p "$OUT" "$OUT/oracle" "$TABLES"
 
 echo
 echo "== 1. correctness: 25 regressions + differential tests vs the oracle"
@@ -43,6 +43,12 @@ echo
 echo "== 3. measurement campaign"
 OUTDIR="$OUT" $PY tightness_witness.py >/dev/null   # emits tightness.json
 $PY campaign.py --out "$OUT" --repeats 5 timing   --sizes $SIZES --instances "$INSTANCES" --oracle-max-m 1200
+# The edge-removal oracle is unaffordable at $SIZES (the smallest instance there
+# has m > 1200), so t_oracle is null in the run above.  The oracle comparison
+# quoted in Section 5.7 is measured separately, at the sizes where the oracle
+# actually terminates: m <= 2000 covers near_tree, sparse_er, grid and
+# small_world at both n=400 and n=900.
+$PY campaign.py --out "$OUT/oracle" --repeats 5 timing --sizes 400 900 --instances "$INSTANCES" --oracle-max-m 2000
 $PY campaign.py --out "$OUT" --repeats 3 ablation --sizes $SIZES --instances "$ABL_INSTANCES" --a0-max-m 20000
 $PY campaign.py --out "$OUT" --repeats 5 theta    --sizes 800 $SIZES --instances 3
 $PY campaign.py --out "$OUT" --repeats 3 frontier --sizes 200 400 800 --instances 25
@@ -56,6 +62,13 @@ echo
 echo "== 4. the two measurement probes quoted in the text"
 $PY probe_blocks.py
 $PY probe_stats_bias.py
+
+echo
+echo "== 4b. the three hand-set tables (exactness, deletion rate, transversal)"
+# These are typeset by hand in main.tex rather than generated, so this step
+# prints the numbers to check them against; it does not write a .tex file.
+$PY report.py
+$PY transversal_study.py
 
 echo
 echo "== 5. tables and figures"

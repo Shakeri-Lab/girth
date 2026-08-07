@@ -1,4 +1,11 @@
-"""Regenerate the Cholera rho* figure from the CERTIFIED pipeline, as vector.
+"""SUPERSEDED -- use regen_cholera_figs.py instead.
+
+This script produces only the rho* panel.  `regen_cholera_figs.py` produces
+both Cholera figures the paper includes, and it is what `reproduce.sh` calls.
+Running this file will not reproduce the figures as published.  It is retained
+only because `cholera_fig.slurm` still refers to it.
+
+Regenerate the Cholera rho* figure from the CERTIFIED pipeline, as vector.
 
 Why this exists
 ---------------

@@ -138,10 +138,14 @@ within a few percent of $1$ should be read as ties.}
 
 # ----------------------------------------------------------------- ablation
 def table_ablation(d, n_target=1600):
-    rows = [r for r in d["rows"] if r.get("n") == n_target and "t" in r]
-    by_var = defaultdict(dict)
-    for r in rows:
-        by_var[r["variant"]][r["family"]] = r
+    # Median over the draws, not whichever row happens to come last.
+    # table_ablation_time medians the same draws and the text reads the two
+    # tables against each other, so taking one instance here would silently
+    # compare a single draw against the median of eight.
+    by_var = defaultdict(lambda: defaultdict(list))
+    for r in d["rows"]:
+        if r.get("n") == n_target and "t" in r and r.get("settled") is not None:
+            by_var[r["variant"]][r["family"]].append(r["settled"])
     fams = ["near_tree", "sparse_er", "grid", "dense_er"]
     out = [prov_comment(d, "ablation.json")]
     out.append(r"""\begin{table}[ht]
@@ -157,13 +161,14 @@ def table_ablation(d, n_target=1600):
         label = ABLATION_TEX[v]
         cells = []
         for f in fams:
-            r = by_var[v].get(f)
-            cells.append(f"{r['settled']:,}".replace(",", "\\,")
-                         if r and r.get("settled") is not None else "---")
+            xs = by_var[v].get(f)
+            cells.append(f"{round(st.median(xs)):,}".replace(",", "\\,")
+                         if xs else "---")
         out.append(f"{v} & {label} & " + " & ".join(cells) + r" \\ \hline")
     out.append(r"""\end{tabular}
 \caption{Ablation at $n=1600$: settled vertices (equivalently $\arg\min$
-operations) as each acceleration is switched on, cumulatively. A0 disables the
+operations) as each acceleration is switched on, cumulatively, median over the
+same draws as Table~\ref{tab:ablation_time}. A0 disables the
 truncation entirely; A1 and A5 are the ``all roots'' and ``transversal''
 configurations of Table~\ref{tab:runtime}. A dash marks a configuration not
 run (A0 is capped by edge count). Every rung returns the same girth on every
