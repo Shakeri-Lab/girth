@@ -1,0 +1,13 @@
+{
+  "source_url": "http://konect.cc/networks/opsahl-usairport  (file: http://konect.cc/files/download.tsv.opsahl-usairport.tar.bz2; original: https://toreopsahl.com/datasets/#usairports network 14b)",
+  "license_or_terms": "KONECT does not attach an explicit licence to this network; it asks for citation of Opsahl (2011) and the KONECT entry. The underlying figures are US DOT Bureau of Transportation Statistics T-100 data (US federal government, public domain).",
+  "weight_semantics": "number of passengers carried between the two airports during 2010, summed over both directions (BTS Transtats T-100, table id 292, Passengers column)",
+  "weights_native": true,
+  "synthetic_weighting": null,
+  "preprocessing": "Source is DIRECTED and positively weighted (KONECT header '% asym posweighted', 28236 arcs on 1574 airports). Symmetrised by SUMMING the two directions (11021 reciprocal/parallel arcs merged); 0 self-loops and 0 non-positive-weight arcs removed. NOTE ON SEMANTICS: the KONECT metadata describes the weight as 'the number of flights on that connection'; Opsahl's own dataset page, which is the authoritative description of the 2010 US airport network, states the weights are the Passengers column of BTS T-100 with duplicate ties summed and zero-weight (cargo-only) ties and self-loops already removed. We report Opsahl's definition and did not independently re-derive the figures from BTS. No unit conversion. Graph before LCC extraction: 1574 nodes, 17215 edges, 2 connected component(s); kept the largest (1572 nodes). Node ids relabelled 0..n-1 in sorted order of the original labels.",
+  "name": "usairport-2010",
+  "n": 1572,
+  "m": 17214,
+  "mu": 15643,
+  "date_downloaded": "2026-08-06"
+}

@@ -1,0 +1,13 @@
+{
+  "source_url": "https://raw.githubusercontent.com/bstabler/TransportationNetworks/master/Chicago-Sketch/ChicagoSketch_net.tntp",
+  "license_or_terms": "No LICENSE file in the bstabler/TransportationNetworks repository (GitHub reports license: null); the repository and per-city READMEs ask users to cite the original data providers. Treat as freely redistributable research data with attribution.",
+  "weight_semantics": "link length as distributed in the TNTP `length` column (MILES -- the in-file ORIGINAL HEADER reads 'length (miles)')",
+  "weights_native": true,
+  "synthetic_weighting": null,
+  "preprocessing": "TNTP header declares 933 nodes, 2950 directed links, 387 traffic analysis zones. The published network was kept intact -- the zone-centroid nodes (ids 1..387) and their artificial centroid-connector links were NOT removed. The `length` column is strictly positive on every link in this file (the `free_flow_time` column is not, which is why length was used). Source is DIRECTED: symmetrised by keeping the MINIMUM length among the directed arcs joining a node pair (1475 arcs collapsed into an existing pair); 0 self-loops removed. No unit conversion. Aggregated 'sketch planning' network of the Chicago region (Eash et al. 1983). Graph before LCC extraction: 933 nodes, 1475 edges, 1 connected component(s); kept the largest (933 nodes). Node ids relabelled 0..n-1 in sorted order of the original labels.",
+  "name": "chicago-sketch-road",
+  "n": 933,
+  "m": 1475,
+  "mu": 543,
+  "date_downloaded": "2026-08-06"
+}

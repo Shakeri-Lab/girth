@@ -1,0 +1,13 @@
+{
+  "source_url": "http://www-personal.umich.edu/~mejn/netdata/power.zip  (index page: http://www-personal.umich.edu/~mejn/netdata/)",
+  "license_or_terms": "M. Newman's network data page states the files are made freely available for research; cite Watts & Strogatz (1998).",
+  "weight_semantics": "SYNTHETIC. The source graph is topological only (a transmission line either exists or does not); no line length, impedance or capacity is distributed with it.",
+  "weights_native": false,
+  "synthetic_weighting": "i.i.d. uniform integer weights drawn from {1,...,1000}; numpy Generator(PCG64) seeded with 20260806; drawn in the sorted (u,v) order of the final relabelled LCC edge list, so the assignment is fully reproducible",
+  "preprocessing": "Topology of the Western States (USA) high-voltage power grid, 4941 nodes / 6594 undirected unweighted edges as distributed in power.gml. Self-loops and duplicate edges removed (there are none in the source). Weights are NOT from the source -- see synthetic_weighting. Any weighted-girth number for this network measures the synthetic weighting, not the physical grid. Graph before LCC extraction: 4941 nodes, 6594 edges, 1 connected component(s); kept the largest (4941 nodes). Node ids relabelled 0..n-1 in sorted order of the original labels.",
+  "name": "uspowergrid-synth",
+  "n": 4941,
+  "m": 6594,
+  "mu": 1654,
+  "date_downloaded": "2026-08-06"
+}

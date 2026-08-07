@@ -1,0 +1,13 @@
+{
+  "source_url": "https://www.diag.uniroma1.it/challenge9/data/rome/rome99.gr  (challenge page: https://www.diag.uniroma1.it/~challenge9/download.shtml)",
+  "license_or_terms": "Distributed by the 9th DIMACS Implementation Challenge (Shortest Paths) for free research use; contributed by G. Storchi, P. Dell'Olmo and M. Gentili.",
+  "weight_semantics": "physical road distance in METRES (stated verbatim in the file header: 'Edge costs are physical distances in meters')",
+  "weights_native": true,
+  "synthetic_weighting": null,
+  "preprocessing": "DIMACS .gr arc list, DIRECTED (header 'p sp 3353 8870'). Symmetrised by keeping the MINIMUM arc cost joining a node pair (4039 arcs collapsed into an existing pair -- almost all of these are the reverse arcs of two-way streets); 0 self-loops and 0 non-positive-cost arcs removed. No unit conversion. Graph before LCC extraction: 3353 nodes, 4831 edges, 1 connected component(s); kept the largest (3353 nodes). Node ids relabelled 0..n-1 in sorted order of the original labels.",
+  "name": "rome99-road",
+  "n": 3353,
+  "m": 4831,
+  "mu": 1479,
+  "date_downloaded": "2026-08-06"
+}

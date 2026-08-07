@@ -1,0 +1,13 @@
+{
+  "source_url": "http://www-personal.umich.edu/~mejn/netdata/celegansneural.zip  (index page: http://www-personal.umich.edu/~mejn/netdata/)",
+  "license_or_terms": "M. Newman's network data page states the files are made freely available for research; cite White et al. (1986) and Watts & Strogatz (1998).",
+  "weight_semantics": "connection strength between two neurons, summed over both directions (positive integer). Newman's accompanying celegansneural.txt states only 'Edge weights are the weights given by Watts'; in the underlying White et al. (1986) wiring data this quantity is the number of synaptic connections / gap junctions between the neuron pair. We record the distributed value verbatim and did not re-derive it from White et al.",
+  "weights_native": true,
+  "synthetic_weighting": null,
+  "preprocessing": "Source is a weighted DIRECTED graph in GML. It contains genuinely duplicated (parallel) arcs but omits the `multigraph 1` declaration, so it was re-parsed with that flag injected in order to preserve them (multigraph_reparse=True). Symmetrised by SUMMING the arc weights over both directions and over parallel arcs (211 arcs merged into an already-seen node pair). 0 self-loops removed. No unit conversion. Graph before LCC extraction: 297 nodes, 2148 edges, 1 connected component(s); kept the largest (297 nodes). Node ids relabelled 0..n-1 in sorted order of the original labels.",
+  "name": "celegans-neural",
+  "n": 297,
+  "m": 2148,
+  "mu": 1852,
+  "date_downloaded": "2026-08-06"
+}

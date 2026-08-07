@@ -1,0 +1,13 @@
+{
+  "source_url": "https://raw.githubusercontent.com/bstabler/TransportationNetworks/master/chicago-regional/ChicagoRegional_net.tntp",
+  "license_or_terms": "No LICENSE file in the bstabler/TransportationNetworks repository (GitHub reports license: null); the repository and per-city READMEs ask users to cite the original data providers. Treat as freely redistributable research data with attribution.",
+  "weight_semantics": "link length as distributed in the TNTP `length` column (UNIT NOT DOCUMENTED by the source -- the in-file header is just 'length' and the repository README documents only Time: Minutes; the value range [0.02, 9.99] is consistent with miles but we do not assert this)",
+  "weights_native": true,
+  "synthetic_weighting": null,
+  "preprocessing": "TNTP header declares 12982 nodes, 39018 directed links, 1790 traffic analysis zones. The published network was kept intact -- the zone-centroid nodes (ids 1..1790) and their artificial centroid-connector links were NOT removed. The `length` column is strictly positive on every link in this file (the `free_flow_time` column is not, which is why length was used). Source is DIRECTED: symmetrised by keeping the MINIMUM length among the directed arcs joining a node pair (18391 arcs collapsed into an existing pair); 0 self-loops removed. No unit conversion. Detailed Chicago region network from the Chicago Area Transportation Study. Graph before LCC extraction: 12979 nodes, 20627 edges, 1 connected component(s); kept the largest (12979 nodes). Node ids relabelled 0..n-1 in sorted order of the original labels.",
+  "name": "chicago-regional-road",
+  "n": 12979,
+  "m": 20627,
+  "mu": 7649,
+  "date_downloaded": "2026-08-06"
+}

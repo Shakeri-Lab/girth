@@ -1,0 +1,13 @@
+{
+  "source_url": "https://raw.githubusercontent.com/jpatokal/openflights/master/data/routes.dat and https://raw.githubusercontent.com/jpatokal/openflights/master/data/airports.dat  (project page: https://openflights.org/data.php)",
+  "license_or_terms": "OpenFlights Airport and Route databases are made available under the Open Database License (ODbL); individual contents under the Database Contents License. Attribution to OpenFlights required; derived works must be openly licensed.",
+  "weight_semantics": "great-circle (haversine) distance in kilometres between the two airports' published latitude/longitude, mean Earth radius R = 6371.0088 km",
+  "weights_native": false,
+  "synthetic_weighting": null,
+  "preprocessing": "routes.dat is a DIRECTED list of airline route legs. Read 67663 route rows; kept only non-stop legs (stops == 0), discarding 11; discarded 892 legs whose OpenFlights airport id was missing from airports.dat; removed 1 self-routes and 0 zero-distance pairs (co-located airports). Because the weight is a function of the two endpoints only, symmetrisation and multi-edge collapse are exact: 47901 further route legs mapped onto an already-created undirected pair and were dropped without changing any weight. The edge SET is native (real airline routes); the WEIGHTS are computed by us from the real published airport coordinates -- they are a genuine physical quantity, not a synthetic/random weighting, but they are not shipped as a weight column by the source, hence weights_native=false. No unit conversion beyond degrees -> km via the haversine formula. Graph before LCC extraction: 3214 nodes, 18858 edges, 7 connected component(s); kept the largest (3188 nodes). Node ids relabelled 0..n-1 in sorted order of the original labels.",
+  "name": "openflights-air",
+  "n": 3188,
+  "m": 18833,
+  "mu": 15646,
+  "date_downloaded": "2026-08-06"
+}

@@ -1,0 +1,13 @@
+{
+  "source_url": "https://networkx.org/documentation/stable/reference/generated/networkx.generators.social.les_miserables_graph.html (original data: D. E. Knuth, The Stanford GraphBase, ACM Press 1993)",
+  "license_or_terms": "Shipped with NetworkX (3-clause BSD). Original data from Knuth's Stanford GraphBase, distributed freely for research use.",
+  "weight_semantics": "number of chapters of Les Miserables in which the two characters co-appear (integer count, >= 1)",
+  "weights_native": true,
+  "synthetic_weighting": null,
+  "preprocessing": "Source is already undirected, simple and weighted; no symmetrisation or deduplication was needed. No unit conversion. Graph before LCC extraction: 77 nodes, 254 edges, 1 connected component(s); kept the largest (77 nodes). Node ids relabelled 0..n-1 in sorted order of the original labels.",
+  "name": "lesmis",
+  "n": 77,
+  "m": 254,
+  "mu": 178,
+  "date_downloaded": "2026-08-06"
+}

@@ -1,0 +1,13 @@
+{
+  "source_url": "OpenStreetMap via the Overpass API, queried with osmnx 2.1.1: ox.graph_from_place('Portland, Oregon, USA', network_type='drive'). https://www.openstreetmap.org/",
+  "license_or_terms": "(c) OpenStreetMap contributors, Open Database License (ODbL) v1.0. Attribution required; derived databases must be shared alike. https://www.openstreetmap.org/copyright",
+  "weight_semantics": "geodesic length of the road segment in METRES, as computed by osmnx from the OSM way geometry (the `length` edge attribute)",
+  "weights_native": true,
+  "synthetic_weighting": null,
+  "preprocessing": "osmnx returns a DIRECTED MULTIgraph of the drivable street network within the Portland, OR administrative boundary (one-way streets appear once, two-way streets twice). Symmetrised/simplified by keeping the MINIMUM `length` among all arcs joining a node pair (26415 arcs collapsed into an existing pair); 53 self-loops and 0 zero-length arcs removed. No unit conversion. REPRODUCIBILITY CAVEAT: OpenStreetMap is a live database -- re-running this query on a later date returns a slightly different graph. The .edges file in this directory is the snapshot actually used; the osmnx HTTP cache is kept under raw/osm_cache/. Graph before LCC extraction: 20154 nodes, 30477 edges, 1 connected component(s); kept the largest (20154 nodes). Node ids relabelled 0..n-1 in sorted order of the original labels.",
+  "name": "osm-portland-drive",
+  "n": 20154,
+  "m": 30477,
+  "mu": 10324,
+  "date_downloaded": "2026-08-06"
+}
