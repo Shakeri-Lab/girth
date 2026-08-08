@@ -611,6 +611,74 @@
     "v0"
    ],
    "agree": true
+  },
+  {
+   "alpha": 0.9,
+   "beta": 0.45,
+   "eps": 0.01,
+   "n": 14,
+   "k": 4,
+   "gamma0": 1.0,
+   "gstar": 0.91,
+   "ghat": 1.0,
+   "ghat_sim": 1.0,
+   "ratio": 1.0989010989010988,
+   "kappa": 1.1111111111111112,
+   "cstar_deleted": [
+    "v0"
+   ],
+   "agree": true
+  },
+  {
+   "alpha": 0.9,
+   "beta": 0.45,
+   "eps": 0.002,
+   "n": 14,
+   "k": 4,
+   "gamma0": 1.0,
+   "gstar": 0.902,
+   "ghat": 1.0,
+   "ghat_sim": 1.0,
+   "ratio": 1.1086474501108647,
+   "kappa": 1.1111111111111112,
+   "cstar_deleted": [
+    "v0"
+   ],
+   "agree": true
+  },
+  {
+   "alpha": 0.9,
+   "beta": 0.45,
+   "eps": 0.0005,
+   "n": 14,
+   "k": 4,
+   "gamma0": 1.0,
+   "gstar": 0.9005,
+   "ghat": 1.0,
+   "ghat_sim": 1.0,
+   "ratio": 1.1104941699056081,
+   "kappa": 1.1111111111111112,
+   "cstar_deleted": [
+    "v0"
+   ],
+   "agree": true
+  },
+  {
+   "alpha": 0.9,
+   "beta": 0.45,
+   "eps": 0.0001,
+   "n": 14,
+   "k": 4,
+   "gamma0": 1.0,
+   "gstar": 0.9001,
+   "ghat": 1.0,
+   "ghat_sim": 1.0,
+   "ratio": 1.1109876680368849,
+   "kappa": 1.1111111111111112,
+   "cstar_deleted": [
+    "v0"
+   ],
+   "agree": true
   }
  ],
  "grid": [
@@ -649,6 +717,10 @@
   [
    0.7,
    0.25
+  ],
+  [
+   0.9,
+   0.45
   ]
  ],
  "epsilons": [
@@ -659,7 +731,7 @@
  ],
  "note": "seeded Algorithm 1; gamma_0 must be 1, not gamma*",
  "provenance": {
-  "git_sha": "b7bb20c9ac1393ab43f12a18d47afce6f88dd142",
+  "git_sha": "7ce3e66eb0685ab276a9dd94039907cafa0340c6",
   "git_dirty": [],
   "host": "SDS-LXQLYPY2CX",
   "cpu": "arm",
