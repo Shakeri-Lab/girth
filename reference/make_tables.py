@@ -72,7 +72,8 @@ def table_runtime_spread(d, n_target=1600):
     out = [prov_comment(d, "timing.json")]
     out.append(r"""\begin{table}[ht]
 \centering
-\small
+\footnotesize
+\setlength{\tabcolsep}{4pt}
 \begin{tabular}{|l|r|r|r|r|r|}
 \hline
 \textbf{Family} & $\mu/n$ & \textbf{all roots (s)} & \textbf{transversal (s)} & \textbf{adaptive (s)} & \textbf{adaptive vs.\ best fixed} \\ \hline""")
@@ -108,7 +109,8 @@ def table_runtime(d, n_target=1600):
     out = [prov_comment(d, "timing.json")]
     out.append(r"""\begin{table}[ht]
 \centering
-\small
+\footnotesize
+\setlength{\tabcolsep}{4pt}
 \begin{tabular}{|l|r|r|r|r|r|r|r|}
 \hline
 \textbf{Family} & $m$ & $\mu/n$ & \textbf{root cut} & \textbf{all roots (s)} & \textbf{transversal (s)} & \textbf{adaptive (s)} & \textbf{adaptive vs.\ best fixed} \\ \hline""")
@@ -150,7 +152,8 @@ def table_ablation(d, n_target=1600):
     out = [prov_comment(d, "ablation.json")]
     out.append(r"""\begin{table}[ht]
 \centering
-\small
+\footnotesize
+\setlength{\tabcolsep}{4pt}
 \begin{tabular}{|l|l|r|r|r|r|}
 \hline
  & \textbf{acceleration added} & \multicolumn{4}{c|}{\textbf{settled vertices}} \\ \cline{3-6}
@@ -190,7 +193,8 @@ def table_ablation_time(d, n_target=1600):
     out = [prov_comment(d, "ablation.json")]
     out.append(r"""\begin{table}[ht]
 \centering
-\small
+\footnotesize
+\setlength{\tabcolsep}{4pt}
 \begin{tabular}{|l|l|""" + "r|" * len(fams) + r"""}
 \hline
  & \textbf{acceleration added} & \multicolumn{""" + str(len(fams)) +
@@ -225,7 +229,8 @@ def table_frontier(d):
     out = [prov_comment(d, "frontier.json")]
     out.append(r"""\begin{table}[ht]
 \centering
-\small
+\footnotesize
+\setlength{\tabcolsep}{4pt}
 \begin{tabular}{|r|r|r|r|r|r|r|}
 \hline
 $\alpha$ & $\beta$ & $\kappa(\alpha,\beta)$ & \textbf{max ratio} & \textbf{mean ratio} & \textbf{deletions} & \textbf{work} \\ \hline""")
@@ -244,7 +249,10 @@ $\alpha$ & $\beta$ & $\kappa(\alpha,\beta)$ & \textbf{max ratio} & \textbf{mean 
     n_inst = max(len(v) for v in by_pair.values())
     worst_ratio = max(r["ratio"] for r in d["rows"])
     wf = [r["work_frac"] for r in d["rows"] if r.get("work_frac")]
-    max_saved = (1 - min(wf)) * 100 if wf else 0.0
+    # Round UP: this is quoted as an upper bound ("no instance saved more
+    # than X"), and round-to-nearest would print 2.5 for an observed 2.53.
+    import math
+    max_saved = math.ceil((1 - min(wf)) * 1000) / 10 if wf else 0.0
     ratio_clause = (
         r"the ratio is exactly $1$, not merely below $\kappa(\alpha,\beta)$"
         if worst_ratio <= 1 + 1e-9 else
@@ -279,7 +287,8 @@ def table_real(rows, prov_files, provs):
            f"% cpu {'; '.join(cpus)}"]
     out.append(r"""\begin{table}[ht]
 \centering
-\small
+\footnotesize
+\setlength{\tabcolsep}{4pt}
 \begin{tabular}{|l|r|r|r|r|r|r|r|}
 \hline
 \textbf{Network} & $n$ & $m$ & $\mu/n$ & \textbf{girth} & \textbf{all roots (s)} & \textbf{transversal (s)} & \textbf{adaptive (s)} \\ \hline""")
