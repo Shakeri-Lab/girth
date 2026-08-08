@@ -74,8 +74,8 @@
    "argmin_oracle": 18000,
    "argmin_allroots": 451,
    "argmin_transversal": 309,
-   "argmin_adaptive": 451,
-   "adaptive_branch": "allroots_unseeded"
+   "argmin_adaptive": 309,
+   "adaptive_branch": "transversal"
   },
   {
    "d": 12,
@@ -85,8 +85,8 @@
    "argmin_oracle": 38016,
    "argmin_allroots": 507,
    "argmin_transversal": 307,
-   "argmin_adaptive": 507,
-   "adaptive_branch": "allroots_unseeded"
+   "argmin_adaptive": 307,
+   "adaptive_branch": "transversal"
   },
   {
    "d": 14,
@@ -96,8 +96,8 @@
    "argmin_oracle": 71344,
    "argmin_allroots": 653,
    "argmin_transversal": 521,
-   "argmin_adaptive": 653,
-   "adaptive_branch": "allroots_unseeded"
+   "argmin_adaptive": 521,
+   "adaptive_branch": "transversal"
   },
   {
    "d": 16,
@@ -107,8 +107,8 @@
    "argmin_oracle": 122880,
    "argmin_allroots": 1177,
    "argmin_transversal": 858,
-   "argmin_adaptive": 1177,
-   "adaptive_branch": "allroots_unseeded"
+   "argmin_adaptive": 858,
+   "adaptive_branch": "transversal"
   },
   {
    "d": 18,
@@ -118,8 +118,8 @@
    "argmin_oracle": 198288,
    "argmin_allroots": 1125,
    "argmin_transversal": 924,
-   "argmin_adaptive": 1125,
-   "adaptive_branch": "allroots_unseeded"
+   "argmin_adaptive": 924,
+   "adaptive_branch": "transversal"
   },
   {
    "d": 20,
@@ -129,24 +129,24 @@
    "argmin_oracle": 304000,
    "argmin_allroots": 1605,
    "argmin_transversal": 1183,
-   "argmin_adaptive": 1605,
-   "adaptive_branch": "allroots_unseeded"
+   "argmin_adaptive": 1183,
+   "adaptive_branch": "transversal"
   }
  ],
  "seed": 20260806,
  "protocol": "Plain Dijkstra returning (dist_to_all, #extract-min operations).\n\n    COUNTING PROTOCOL (stated so the figure caption can state it): one\n    argmin operation is counted per vertex REMOVED from the heap and settled,\n    i.e. per successful extract-min; stale heap entries popped and discarded\n    are not counted.  This is the same quantity as `total_settled` in the\n    reference implementation's stats, so the two curves are commensurable.",
  "provenance": {
-  "git_sha": "9efad009cc9889d880d4a7e4fdf9fa26c02ddc7b",
+  "git_sha": "b4d5e4340be88bd2c1a84dce74f91b50ffe8aee7",
   "git_dirty": [],
-  "host": "udc-aw36-8c0",
+  "host": "udc-aw34-5c1",
   "cpu": "Intel(R) Xeon(R) Gold 6248 CPU @ 2.50GHz",
   "python": "3.12.2",
-  "slurm_job_id": "18182844",
+  "slurm_job_id": "18186468",
   "slurm_array_task_id": "4",
   "argv": [
    "campaign.py",
    "--out",
-   "/scratch/hs9hd/mwc_campaign_v4/results",
+   "/scratch/hs9hd/mwc_campaign_v5/results",
    "--repeats",
    "1",
    "argmin",
