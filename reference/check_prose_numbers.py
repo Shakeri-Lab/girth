@@ -74,6 +74,9 @@ def build_checks(results):
                        r"all roots has median \$(\d+)\\times\$", st.median(A)))
         CHECKS.append(("oracle: transversal median",
                        r"transversal roots median \$(\d+)\\times\$", st.median(T)))
+        CHECKS.append(("oracle: within-job control (oracle/all-roots)",
+                       r"is \$([\d.]+)\$ and \$[\d.]+\$ across the two runs",
+                       st.median([r["t_oracle"] / r["t_allroots"] for r in o])))
         slow = [r for r in o if r["t_oracle"] / r["t_allroots"] < 1]
         CHECKS.append(("oracle: count of all-roots losses",
                        r"On \$(\d+)\$ of the \$192\$ instances", float(len(slow))))
