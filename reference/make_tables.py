@@ -209,8 +209,9 @@ def table_ablation_time(d, n_target=1600):
 operation counts, at $n=""" + f"{n_target}" + r"""$, median over the same draws.
 A1 is the $n$-root baseline with truncation and A7 the configuration we
 recommend; reading down a column shows what each acceleration is worth in time
-on that family, which is the comparison the $40$--$70\times$ edge-removal figure
-does not make. A dash marks a configuration not run.}
+on that family, which is the comparison the edge-removal figure of
+Section~\ref{subsec:exp_runtime} does not make. A dash marks a configuration
+not run.}
 \label{tab:ablation_time}
 \end{table}""")
     return "\n".join(out)

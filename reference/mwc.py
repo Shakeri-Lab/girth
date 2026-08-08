@@ -939,7 +939,15 @@ def mwc_transversal(
     *,
     root_order: Optional[Sequence[Any]] = None,
     use_2core: bool = True,
-    use_blocks: bool = True,
+    # Off by default on measured evidence: the biconnected split costs 2-24%
+    # of wall clock across the benchmark families and 5-39% on the block probe,
+    # and buys no reliable reduction in settled vertices, because the largest
+    # block is 91-100% of the 2-core on every graph we instrumented.  It also
+    # has to be off here for the adaptive switch to be a fair comparison
+    # against this function -- mwc_adaptive's transversal branch passes
+    # use_blocks=False, so a True default silently charged the fixed
+    # configuration for a pass the switch never ran.
+    use_blocks: bool = False,
     certify: bool = True,
     collect_stats: bool = True,
     allow_zero_weights: bool = False,
