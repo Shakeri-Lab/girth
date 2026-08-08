@@ -50,13 +50,20 @@ from mwc import (
     two_core,
 )
 
-# Fitted from `campaign.py theta` (job 18104376_2, Xeon Gold 6248, n = 800 and
-# 1600, 3 instances per point).  Median transversal-vs-allroots speedup stays
-# above 1 through mu/n = 0.7 (1.11x at n=1600) and crosses below 1 at
-# mu/n = 0.8-1.0, so the switch is set at 0.8 rather than at the midpoint 0.5
-# guessed before the sweep -- 0.5 gave away the 1.1-1.3x still available in
-# 0.5 <= mu/n <= 0.7.
-THETA_DEFAULT = 0.8
+# Re-fitted from `campaign.py theta` (job 18185835, Xeon Gold 6248, n = 800 and
+# 1600, 8 instances per point, mu/n swept to 16).  Median transversal-vs-allroots
+# speedup stays above 1 through mu/n = 3 (1.03x at n=800, 1.02x at n=1600) and is
+# below 1 from mu/n = 4 onward (0.98 and 0.95), so the crossover is between 3 and
+# 4 and the switch is set at 3.
+#
+# The previous value of 0.8 came from a sweep that stopped at mu/n = 1.5 and in
+# which mwc_transversal still defaulted to running the biconnected-block split
+# while this function's transversal branch did not.  The block pass cost the
+# transversal arm 2-24%, which is what appeared to push it below parity near
+# mu/n = 1; with the flag matched it stays ahead four times further out.  At 0.8
+# the switch sent every graph with mu/n in [0.8, 3] to all roots, and on the real
+# networks it took the slower branch on three of ten.
+THETA_DEFAULT = 3.0
 
 
 def cyclomatic_number(adj: Dict[Any, Dict[Any, float]]) -> int:

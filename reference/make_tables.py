@@ -302,8 +302,9 @@ def table_real(rows, prov_files, provs):
     out.append(r"""\end{tabular}
 \caption{Real-world networks. All three exact configurations return the same
 girth on every network, and each returned cycle was reconstructed and
-re-weighted independently. Weight semantics and provenance for each network
-are given in Section~\ref{subsec:artifact}.}
+re-weighted independently. Weight semantics, source and licence for each
+network are given in Section~\ref{subsec:methodology} and, per network, in
+\texttt{realnets/*.json} in the artifact.}
 \label{tab:real}
 \end{table}""")
     return "\n".join(out)
