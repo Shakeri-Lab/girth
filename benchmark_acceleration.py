@@ -84,10 +84,10 @@ REALNET_GROUND_TRUTH: Dict[str, Dict[str, Any]] = {
     "rome99-road": {"n": 3353, "m": 4831, "girth": 6.0},
     "uspowergrid-synth": {"n": 4941, "m": 6594, "girth": 379.0},
     "usairport-2010": {"n": 1572, "m": 17214, "girth": 3.0},
-    "openflights-air": {"n": 3188, "m": 18833, "girth": 32.74157},
-    "chicago-regional-road": {"n": 12979, "m": 20627, "girth": 1.0},
-    "osm-portland-drive": {"n": 20154, "m": 30477, "girth": 1.0},
-    "sydney-road": {"n": 32956, "m": 38787, "girth": 1.0},
+    "openflights-air": {"n": 3188, "m": 18833, "girth": 32.74156860581118},
+    "chicago-regional-road": {"n": 12979, "m": 20627, "girth": 0.1},
+    "osm-portland-drive": {"n": 20154, "m": 30477, "girth": 18.75443212338135},
+    "sydney-road": {"n": 32956, "m": 38787, "girth": 0.053},
 }
 
 
